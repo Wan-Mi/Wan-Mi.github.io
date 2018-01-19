@@ -1,5 +1,5 @@
 ---
-layout: layout
+layout: post
 title: '[Go]错误类型error与panic'
 date: 2018-01-19 17:16:24
 tags: Go
