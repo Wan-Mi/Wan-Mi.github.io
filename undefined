@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" >
     <title>
         
-        Wanmii&#39;s Blog.
+        [Go]错误类型error与panic · Wanmii&#39;s Blog.
         
     </title>
     <link rel="icon" href= /assets/rider.png>
@@ -58,6 +58,8 @@
 </head>
 
     
+        <body class="post-body">
+    
     
 <header class="header">
 
@@ -65,27 +67,71 @@
     <div class="header-sidebar-menu">&#xe775;</div>
     <!-- post页的toggle banner  -->
     
+    <div class="banner">
+            <div class="blog-title">
+                <a href="/" >Wanmii&#39;s Blog.</a>
+            </div>
+            <div class="post-title">
+                <a href="#" class="post-name">[Go]错误类型error与panic</a>
+            </div>
+    </div>
+    
     <a class="home-link" href=/>Wanmii's Blog.</a>
 </header>
     <div class="wrapper">
         <div class="site-intro">
     
     <!-- 主页  -->
+    
+    
+    <!-- 404页  -->
             
-    <div class="site-intro-img" style="background-image: url(/)"></div>
+    <div class="site-intro-img" style="background-image: url(/assets/star.jpeg)"></div>
     <div class="site-intro-placeholder"></div>
     <div class="site-intro-meta">
         <!-- 标题  -->
         <h1 class="intro-title">
             <!-- 主页  -->
             
+            [Go]错误类型error与panic
+            <!-- 404 -->
+            
         </h1>
         <!-- 副标题 -->
         <p class="intro-subtitle">
             <!-- 主页副标题  -->
             
+            
+            <!-- 404 -->
+            
         </p>
         <!-- 文章页meta -->
+        
+            <!-- 文章页标签  -->
+            
+                <div class= post-intro-tags >
+    
+        <a class="post-tag" href="javascript:void(0);" data-href = Go>Go</a>
+    
+</div>
+            
+            <script>window._bd_share_config = { "common": { "bdSnsKey": {}, "bdText": "", "bdMini": "2", "bdMiniList": false, "bdPic": "", "bdStyle": "1", "bdSize": "16" }, "share": {} }; with (document) 0[(getElementsByTagName('head')[0] || body).appendChild(createElement('script')).src = "/static/api/js/share.js"];</script>
+            <div class="post-intro-meta">
+                <span class="post-intro-calander iconfont-archer">&#xe676;</span>
+                <span class="post-intro-time">2018/01/19</span>
+                <span id="busuanzi_container_page_pv" class="busuanzi-pv">
+                    <span class="iconfont-archer">&#xe604;</span>
+                    <span id="busuanzi_value_page_pv"></span>
+                </span>
+                <span class="shareWrapper">
+                    <span class="iconfont-archer shareIcon">
+                        &#xe601;
+                    </span>
+                    <span class="bdsharebuttonbox">
+                        <a href="#" class="bds_more shareText" data-cmd="more">Share</a>
+                    </span>
+                </span>
+            </div>
         
     </div>
 </div>
@@ -155,7 +201,21 @@
         <div class="container container-unloaded">
             <main class="main post-page">
     <article class="article-entry">
-        <p>layout: 404<br>title: “[404]”<br>description: “May the Force be with you :&#41;”</p>
+        <h2 id="error类型与package-errors"><a href="#error类型与package-errors" class="headerlink" title="error类型与package errors"></a>error类型与package errors</h2><p>先看error类型定义：</p>
+<p>type error interface {<br>Error() string<br>}<br>由定义可看出error是一个含有Error()函数的接口。换句话说，任何结构体只要实现了该函数就继承了error类型。常见的创建error类型对象的方式有两种：</p>
+<p>errors.New(“errorString”)<br>fmt.Errorf(“errorString”)<br>其中，package errors源码为：</p>
+<p>package errors</p>
+<p>// New returns an error that formats as the given text.<br>func New(text string) error {<br>return &amp;errorString{text}<br>}</p>
+<p>// errorString is a trivial implementation of error.<br>type errorString struct {<br>s string<br>}</p>
+<p>func (e *errorString) Error() string {<br>return e.s<br>}</p>
+<p>errors包中的errorString类型实现了Error()函数，并通过New()方法初始化。<br>fmt.Errorf()源码：</p>
+<p>func Errorf(format string, a …interface{}) error {<br>return errors.New(Sprintf(format, a…))<br>}<br>可见，fmt.Errorf()只是换种方式的errors.New()。</p>
+<h2 id="panic-与recover"><a href="#panic-与recover" class="headerlink" title="panic()与recover()"></a>panic()与recover()</h2><p>panic和recover都是Go标准库中的函数。panic的字面意思是“恐慌的”，往往是指那些无法修复的错误。比如数字除以0，数组越界，空指针取值等。由于panic类型错误往往可使得程序崩溃，因而需要使用recover对panic进行捕获，从而做进一步处理避免崩溃。<br>还是先看定义：</p>
+<p>func panic(v interface{})<br>func recover() interface{}<br>其中，panic是入参为空接口（可传任何值）返参为空的一个函数，而recover正好反过来。当二者配合使用时，recover捕获的正好是panic传入的值。使用示例：</p>
+<p>func testPanic() {<br>// 必须使用defer关键字在延迟调用函数内直接recover()<br>defer func() {<br>fmt.Println(recover())<br>}()</p>
+<p>a := 0<br>fmt.Println(1 / a)<br>}<br>上述代码的运行结果为：</p>
+<p>runtime error: integer divide by zero<br>例子中故意使用了一个除数为0的运算触发panic（当然也可以直接调用<code>panic(&quot;message&quot;)</code>函数触发）。不过panic被成功捕获并打印出来，程序得以继续运行。如果panic没有被捕获，错误信号会一直向外层传递产生运行时错误，导致程序崩困。<br><strong>值得说明的是，recover()函数必须放在defer func()中直接延迟调用才能生效，<code>defer recover()</code>这种写法也不行。如果不用defer关键字，panic会直接触发没有机会运行recover；而如果不放在闭包中，recover将无法捕获所在函数或方法层的panic。</strong></p>
+<p>最后，是否需要将一些error转为panic。个人建议是尽量对每个error进行处理，只有当在主流程遇到无法修复的错误时，才考虑使用panic()。</p>
 
     </article>
     <!-- 前后页  -->
@@ -174,7 +234,7 @@
 <script src="https://imsun.github.io/gitment/dist/gitment.browser.js"></script>
 <script>
     var gitment = new Gitment({
-        // id: "", // 可选。默认为 location.href
+        // id: "[Go]错误类型error与panic", // 可选。默认为 location.href
         owner: 'Wan-Mi',
         repo: 'gitment',
         oauth: {
@@ -232,6 +292,13 @@
 </footer>
     </div>
     <!-- toc -->
+    
+    <div class="toc-wrapper">
+        <div class="toc-catalog">
+            <span class="iconfont-archer catalog-icon">&#xe613;</span><span>CATALOG</span>
+        </div>
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#error类型与package-errors"><span class="toc-number">1.</span> <span class="toc-text">error类型与package errors</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#panic-与recover"><span class="toc-number">2.</span> <span class="toc-text">panic()与recover()</span></a></li></ol>
+    </div>
     
     <div class="back-top">&#xe639;</div>
     <div class="sidebar">
