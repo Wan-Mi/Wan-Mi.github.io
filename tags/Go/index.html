@@ -158,6 +158,35 @@
     
     
         <article class="index-post">
+            <a class="abstract-title" href = "/2018/01/22/Go-并发控制的两种方式/" >
+                
+                    <span>[Go]并发控制的两种方式</span>
+            </a>
+            <a class="content-show-full" href = "/2018/01/22/Go-并发控制的两种方式/" >
+                <div class="abstract-content">
+                    适用于并发查询计算等业务场景。
+使用channel12345678910111213141516171819202122232425// channelfunc TestChan() &#123;	numbers := []int32&#123;		1, 2, 3, 4, 5,	&#125;	ch := make(chan int32, 0)	for _, x := range append(numbers, 1) &#123;		go func(x int32) &#123;			x++			ch &lt;- x		&#125;(x)	&#125;	resNums := []int32...
+                </div>
+            </a>
+            <div class="abstract-post-meta">
+                <!-- tags  -->
+                
+                <div class= abstract-tags >
+    
+        <a class="post-tag" href="javascript:void(0);" data-href = Go>Go</a>
+    
+</div>
+                
+                <!-- date  -->
+                <div class="abstract-date">
+                    <span class="abstract-calander iconfont-archer"></span><span class="abstract-time">2018/01/22</span>
+                </div>
+            </div>
+        </article>
+    
+    
+    
+        <article class="index-post">
             <a class="abstract-title" href = "/2018/01/20/Go-slice、map、channel与struct的初始化/" >
                 
                     <span>[Go]slice、map、channel与struct的初始化</span>
@@ -302,7 +331,16 @@ package errors
     
     
     
-    <div class="total-archive"> Total : 3 </div>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <div class="total-archive"> Total : 4 </div>
     
     <div class="post-archive">
     
@@ -311,6 +349,11 @@ package errors
     
     <div class="archive-year"> 2018 </div>
     <ul class="year-list">
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">01/22</span><a class="archive-post-title" href= "/2018/01/22/Go-并发控制的两种方式/" >[Go]并发控制的两种方式</a>
+        </li>
     
     
         <li class="archive-post-item">

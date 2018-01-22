@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" >
     <title>
         
-        [Go]slice、map、channel与struct的初始化 · Wanmii&#39;s Blog.
+        [Go]并发控制的两种方式 · Wanmii&#39;s Blog.
         
     </title>
     <link rel="icon" href= /assets/rider.png>
@@ -72,7 +72,7 @@
                 <a href="/" >Wanmii&#39;s Blog.</a>
             </div>
             <div class="post-title">
-                <a href="#" class="post-name">[Go]slice、map、channel与struct的初始化</a>
+                <a href="#" class="post-name">[Go]并发控制的两种方式</a>
             </div>
     </div>
     
@@ -93,7 +93,7 @@
         <h1 class="intro-title">
             <!-- 主页  -->
             
-            [Go]slice、map、channel与struct的初始化
+            [Go]并发控制的两种方式
             <!-- 404 -->
             
         </h1>
@@ -118,7 +118,7 @@
             <script>window._bd_share_config = { "common": { "bdSnsKey": {}, "bdText": "", "bdMini": "2", "bdMiniList": false, "bdPic": "", "bdStyle": "1", "bdSize": "16" }, "share": {} }; with (document) 0[(getElementsByTagName('head')[0] || body).appendChild(createElement('script')).src = "/static/api/js/share.js"];</script>
             <div class="post-intro-meta">
                 <span class="post-intro-calander iconfont-archer">&#xe676;</span>
-                <span class="post-intro-time">2018/01/20</span>
+                <span class="post-intro-time">2018/01/22</span>
                 <span id="busuanzi_container_page_pv" class="busuanzi-pv">
                     <span class="iconfont-archer">&#xe604;</span>
                     <span id="busuanzi_value_page_pv"></span>
@@ -201,33 +201,26 @@
         <div class="container container-unloaded">
             <main class="main post-page">
     <article class="article-entry">
-        <p>本文介绍golang中的三种引用类型slice、map和channel以及结构体的初始化方法以及一些潜在的坑。<br>先上代码：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br></pre></td><td class="code"><pre><span class="line">package main</span><br><span class="line"></span><br><span class="line">import (</span><br><span class="line">&quot;fmt&quot;</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line">type Location struct &#123;</span><br><span class="line">UUID       string</span><br><span class="line">Longitude  float64</span><br><span class="line">Latitude   float64</span><br><span class="line">DetectedAt int64</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">func main() &#123;</span><br><span class="line"></span><br><span class="line">// slice</span><br><span class="line">var s1 []int</span><br><span class="line">s1 = append(s1, 1)</span><br><span class="line"></span><br><span class="line">s2 := make([]int,0)</span><br><span class="line">s2 = append(s2, 2)</span><br><span class="line"></span><br><span class="line">s3 := []int&#123;&#125;</span><br><span class="line">s3 = append(s3, 3)</span><br><span class="line"></span><br><span class="line">fmt.Println(s1,s2,s3)</span><br><span class="line"></span><br><span class="line">// map</span><br><span class="line">var m1 map[string]int</span><br><span class="line">//    m1[&quot;key&quot;] = 1</span><br><span class="line"></span><br><span class="line">m2 := make(map[string]int)</span><br><span class="line">m2[&quot;key&quot;] = 2</span><br><span class="line"></span><br><span class="line">m3 := map[string]int&#123;&#125;</span><br><span class="line">m3[&quot;key&quot;] = 3</span><br><span class="line"></span><br><span class="line">fmt.Println(m1,m2,m3)</span><br><span class="line"></span><br><span class="line">// channel</span><br><span class="line">//    var c1 chan int</span><br><span class="line">//    go func() &#123;</span><br><span class="line">//        c1&lt;- 1</span><br><span class="line">//    &#125;()</span><br><span class="line">//    fmt.Println(&lt;-c1)</span><br><span class="line"></span><br><span class="line">c2 := make(chan int,0)</span><br><span class="line">go func() &#123;</span><br><span class="line">c2&lt;- 2</span><br><span class="line">&#125;()</span><br><span class="line">fmt.Println(&lt;-c2)</span><br><span class="line"></span><br><span class="line">// stuct</span><br><span class="line">var t1 *Location</span><br><span class="line">//    t1.UUID = &quot;abc&quot;</span><br><span class="line"></span><br><span class="line">t2 := new(Location)</span><br><span class="line">t2.UUID = &quot;abc&quot;</span><br><span class="line"></span><br><span class="line">t3 := &amp;Location&#123;&#125;</span><br><span class="line">t3.UUID = &quot;abc&quot;</span><br><span class="line"></span><br><span class="line">fmt.Println(t1,t2,t3)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>上述代码在 <a href="https://play.golang.org" target="_blank" rel="noopener">https://play.golang.org</a> 中的运行结果为：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[1] [2] [3]</span><br><span class="line">map[] map[key:2] map[key:3]</span><br><span class="line">2</span><br><span class="line">&lt;nil&gt; &amp;&#123;abc 0 0 0&#125; &amp;&#123;abc 0 0 0&#125;</span><br></pre></td></tr></table></figure>
-<p>以下进行详细说明：<br><strong>slice：</strong> 可以使用var声明、make、以及字面量三种方式初始化。可以看出s1、s2、s3均可以正常使用append方法进行slice扩充。比较有意思的是var声明后的slice初始值为nil，但使用起来不会报错（panic）。 对此Golang.org blog中的说法是：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">a nil slice is functionally equivalent to a zero-length slice, even</span><br><span class="line">though it points to nothing. It has length zero and can be appended</span><br><span class="line">to, with allocation.</span><br></pre></td></tr></table></figure>
-<p>也就是说nil slice和zero-length slice在功能上是相等的。而且，为了避免不表要的内存分配，<strong>个人建议使用<code>var s1 []int</code>的方式初始化。</strong></p>
-<p><strong>map：</strong> 使用了var声明、make、以及字面量三种方式初始化。其中m2和m3的效果相同，而m1的赋值之所以被注释掉，因为其与slice不同，nil map的赋值会引起panic。</p>
-<p><strong>channel：</strong> 使用了var声明、make两种方式初始化。其中c1被注释掉是因为nil channel无法传递信息，会造成死锁。所以只建议使用<code>make(chan int,len)</code>方法进行初始化，也方便用第二个参数设置channel的容量。</p>
-<p><strong>struct：</strong> 使用了var声明、new、以及字面量三种方式初始化。t1被注释掉的原因同m1相同，对nil的结构体内部赋值会造成panic。<strong>这也是新手经常会踩的一个坑，当函数的返回值为结构体时一定要判断是否为空，否则一访问其中字段就崩溃。</strong> 而new和字面量都是比较安全的初始化方式。</p>
+        <p>适用于并发查询计算等业务场景。</p>
+<h2 id="使用channel"><a href="#使用channel" class="headerlink" title="使用channel"></a>使用channel</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">// channel</span><br><span class="line">func TestChan() &#123;</span><br><span class="line">	numbers := []int32&#123;</span><br><span class="line">		1, 2, 3, 4, 5,</span><br><span class="line">	&#125;</span><br><span class="line">	ch := make(chan int32, 0)</span><br><span class="line"></span><br><span class="line">	for _, x := range append(numbers, 1) &#123;</span><br><span class="line">		go func(x int32) &#123;</span><br><span class="line">			x++</span><br><span class="line">			ch &lt;- x</span><br><span class="line">		&#125;(x)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	resNums := []int32&#123;&#125;</span><br><span class="line">	for range numbers &#123;</span><br><span class="line">		select &#123;</span><br><span class="line">		case y := &lt;-ch:</span><br><span class="line">			resNums = append(resNums, y)</span><br><span class="line">		case &lt;-time.After(5 * time.Second):</span><br><span class="line">			fmt.Println(&quot;time out&quot;)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	fmt.Println(&quot;results is:&quot;, resNums)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>上文首先定义了包含5个数字的<code>int32</code>型Slice以及对应长度类型的Channel；然后分5个Goroutine对Slice中的每个数字进行自增运算形成新的Slice并输出。运行结果为（并发输出顺序随机，以下只是其中一种可能）：  </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">results is: [2 3 6 2 5]</span><br></pre></td></tr></table></figure>
+<p>该方法的基本思想是：将每个Goroutine的处理结果通过Chan传到指定Goroutine，使用select语句收集传输过来的内容。属于”以通讯共享内存”的内容安全策略。<br>注意：Channel的收发个数要保持一致，当收多于发时会造成死锁，最好添加超时语句做异常情况保护<code>case &lt;-time.After(10 * time.Second):</code>。</p>
+<h2 id="使用sync-WaitGroup"><a href="#使用sync-WaitGroup" class="headerlink" title="使用sync.WaitGroup"></a>使用sync.WaitGroup</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">// waitGroup</span><br><span class="line">func TestWaitGroup() &#123;</span><br><span class="line">	numbers := []int32&#123;</span><br><span class="line">		1, 2, 3, 4, 5,</span><br><span class="line">	&#125;</span><br><span class="line">	resNums := []int32&#123;&#125;</span><br><span class="line"></span><br><span class="line">	var wg sync.WaitGroup</span><br><span class="line">	wg.Add(len(numbers))</span><br><span class="line">	for _, val := range numbers &#123;</span><br><span class="line">		go func(t int32) &#123;</span><br><span class="line">			defer wg.Done()</span><br><span class="line">			resNums = append(resNums, t)</span><br><span class="line">		&#125;(val)</span><br><span class="line">	&#125;</span><br><span class="line">	wg.Wait()</span><br><span class="line"></span><br><span class="line">	fmt.Println(&quot;results is:&quot;, resNums)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>功能与第一段代码相同，运行结果： </p>
+<pre><code>results is: [5 1 2 3 4]
+</code></pre><p>该方法的基本思想是：声明一个长度为<code>len</code>的<code>sync.WaitGroup</code>队列<code>wg</code>,各个Goroutine中每执行一次<code>wg.Done()</code>队列长度减1，<code>wg.Wait()</code>会对队列长度进行判断，为0时程序才往下进行。该方法直接对内存进行了共享。<br>注意：<code>wg.Add(len)</code>中的len应等于<code>wg.Done()</code>的执行次数,len一直未置0会造成死锁。  </p>
+<p>–<br>建议：从实际使用的角度来说使用WaitGroup会使代码更为简洁，但从内容安全以及设计者初衷来说应选择使用channel。</p>
 
     </article>
     <!-- 前后页  -->
     <ul class="post-pager">
         
-            <li class="next">
-                <a href= "/2018/01/20/Godep-如何合理更新Go项目依赖/" title= [Godep]如何合理更新Go项目依赖 >
-                    <span>Next Post</span>
-                    <span>[Godep]如何合理更新Go项目依赖</span>
-                </a>
-            </li>
-        
         
             <li class="previous">
-                <a href= "/2018/01/19/Go-错误类型error与panic/" title= [Go]错误类型error与panic >
+                <a href= "/2018/01/20/Godep-如何合理更新Go项目依赖/" title= [Godep]如何合理更新Go项目依赖 >
                     <span>Previous Post</span>
-                    <span>[Go]错误类型error与panic</span>
+                    <span>[Godep]如何合理更新Go项目依赖</span>
                 </a>
             </li>
         
@@ -243,7 +236,7 @@
 <script src="https://imsun.github.io/gitment/dist/gitment.browser.js"></script>
 <script>
     var gitment = new Gitment({
-        // id: "[Go]slice、map、channel与struct的初始化", // 可选。默认为 location.href
+        // id: "[Go]并发控制的两种方式", // 可选。默认为 location.href
         owner: 'Wan-Mi',
         repo: 'gitment',
         oauth: {
@@ -306,7 +299,7 @@
         <div class="toc-catalog">
             <span class="iconfont-archer catalog-icon">&#xe613;</span><span>CATALOG</span>
         </div>
-        
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#使用channel"><span class="toc-number">1.</span> <span class="toc-text">使用channel</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#使用sync-WaitGroup"><span class="toc-number">2.</span> <span class="toc-text">使用sync.WaitGroup</span></a></li></ol>
     </div>
     
     <div class="back-top">&#xe639;</div>
