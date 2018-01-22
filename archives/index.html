@@ -224,7 +224,7 @@
             <a class="content-show-full" href = "/2018/01/20/Go-slice、map、channel与struct的初始化/" >
                 <div class="abstract-content">
                     本文介绍golang中的三种引用类型slice、map和channel以及结构体的初始化方法以及一些潜在的坑。先上代码：
-12345678910111213141516171819202122232425262728293031323334353637383940414243444546474849505152535455565758596061626364package mainimport (&quot;fmt&quot;)type Location struct &#123;UUID       stringLongitude  float64Latitude   float64D...
+12345678910111213141516171819202122232425262728293031323334353637383940414243444546474849505152535455565758596061626364package mainimport (    &quot;fmt&quot;)type Location struct &#123;    UUID       string    Longitude  float64    Lat...
                 </div>
             </a>
             <div class="abstract-post-meta">
@@ -254,7 +254,7 @@
                 <div class="abstract-content">
                     error类型与package errors先看error类型定义：
 type error interface {
-Error() string
+    Error() string
 }
 由定义可看出error是一个含有Error()函数的接口。换句话说，任何结构体只要实现了该函数就继承了error类型。常见的创建error类型对象的方式有两种：
 errors.New(&quot;errorString&quot;)
@@ -262,7 +262,7 @@ fmt.Errorf(&quot;errorString&quot;)
 其中，package errors源码为：
 package errors
 
-// New returns an error that fo...
+// New returns an error tha...
                 </div>
             </a>
             <div class="abstract-post-meta">
