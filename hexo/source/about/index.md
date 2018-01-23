@@ -1,5 +1,5 @@
 ---
 title: I am nothing.
-layout: about
+layout: post
 ---
 
