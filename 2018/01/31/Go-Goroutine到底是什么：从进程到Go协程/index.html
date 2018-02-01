@@ -221,7 +221,7 @@
 <li><em>备注：以上划分标准摘录并适用于IBM专有UNIX操作系统；在一些其他系统中，用户线程就称为线程，而轻量级进程指的是内核线程。</em></li>
 </ul>
 </li>
-<li><strong>线程切换</strong>：同一进程中的线程之间是并发运行的；一个线程可以创建和撤销另一个线程；同一进程中的内核进行切换时，只需重新装载待切换线程的私有上下文信息即可。</li>
+<li><strong>线程切换</strong>：同一进程中的线程之间是并发运行的；一个线程可以创建和撤销另一个线程；同一进程中的线程进行切换时，只需重新装载待切换线程的私有上下文信息即可。</li>
 </ul>
 <h2 id="子例程（Subroutine）"><a href="#子例程（Subroutine）" class="headerlink" title="子例程（Subroutine）"></a>子例程（Subroutine）</h2><ul>
 <li><strong>定义</strong>：指在计算机程序中，大型程序的一部分代码，由一个或多个语句块组成。</li>
@@ -243,7 +243,7 @@
 </li>
 </ul>
 <h2 id="Go协程（Goroutine）"><a href="#Go协程（Goroutine）" class="headerlink" title="Go协程（Goroutine）"></a>Go协程（Goroutine）</h2><ul>
-<li><strong>定义</strong>：直接引用Go作者之一<em>Rob Pike</em>的说法：“<em>一个Goroutine是一个与其他goroutines 并发运行在同一地址空间的Go函数或方法。一个运行的程序由一个或更多个goroutine组成。它与线程、协程、进程等不同。它是一个goroutine。</em>”</li>
+<li><strong>定义</strong>：直接引用Go作者之一<em>Rob Pike</em>的说法：“<em>一个Goroutine是一个与其他Goroutines并发运行在同一地址空间的Go函数或方法。一个运行的程序由一个或更多个Goroutine组成。它与线程、协程、进程等不同。它是一个Goroutine。</em>”</li>
 <li><strong>Go协程与协程</strong>：<ul>
 <li>执行方式：Go协程往往意味着并行；协程更多是逻辑上的并发。</li>
 <li>通信方式：Go协程通过通道（channel）来通信；协程通过让出（yield）和恢复（resume）操作来通信。</li>
