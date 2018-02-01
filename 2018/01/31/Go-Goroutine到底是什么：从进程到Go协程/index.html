@@ -255,6 +255,7 @@
 <li>身份信息：大多数支持多线程的操作系统中，线程都会被分配一个身份ID便于识别和调度；Go协程并没有身份ID的概念。</li>
 </ul>
 </li>
+<li><strong>GOMAXPROCS</strong>：Go的调度器使用<code>GOMAXPROCS</code>变量来设置Go协程可分配的操作系统线程数，其默认值是CPU的核心数<code>runtime.GOMAXPROCS(runtime.NumCPU())</code>,程序员可根据自身所需进行设置（绝大多数情况下默认设置性能最优）。</li>
 </ul>
 <p>–</p>
 <p>Reference:  </p>
