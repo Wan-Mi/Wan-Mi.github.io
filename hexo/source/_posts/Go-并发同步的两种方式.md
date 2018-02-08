@@ -51,11 +51,15 @@ func TestWaitGroup() {
 	resNums := []int32{}
 
 	var wg sync.WaitGroup
+	var mt sync.Mutex
+
 	wg.Add(len(numbers))
 	for _, val := range numbers {
 		go func(t int32) {
 			defer wg.Done()
+			mt.Lock()
 			resNums = append(resNums, t)
+			mt.Unlock()
 		}(val)
 	}
 	wg.Wait()
@@ -69,8 +73,9 @@ func TestWaitGroup() {
 ```  
 results is: [5 1 2 3 4]  
 ```  
-该方法的基本思想是：声明一个长度为`len`的`sync.WaitGroup`队列`wg`,各个Goroutine中每执行一次`wg.Done()`队列长度减1，`wg.Wait()`会对队列长度进行判断，为0时程序才往下进行。该方法直接对内存进行了共享。
+该方法的基本思想是：声明一个长度为`len`的`sync.WaitGroup`队列`wg`,各个Goroutine中每执行一次`wg.Done()`队列长度减1，`wg.Wait()`会对队列长度进行判断，为0时程序才往下进行。该方法直接对内存进行了共享。  
 注意：`wg.Add(len)`中的len应等于`wg.Done()`的执行次数,len一直未置0会造成死锁。  
+另: 由于`append()`函数非并发安全，需要添加并发锁`sync.Mutex`。
 
 --
 建议：从实际使用的角度来说使用WaitGroup会使代码更为简洁，但从内容安全以及设计者初衷来说应选择使用channel。
