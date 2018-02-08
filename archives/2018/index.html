@@ -158,6 +158,49 @@
     
     
         <article class="index-post">
+            <a class="abstract-title" href = "/2018/02/08/Go-简述内存分配/" >
+                
+                    <span>[Go]简述内存分配</span>
+            </a>
+            <a class="content-show-full" href = "/2018/02/08/Go-简述内存分配/" >
+                <div class="abstract-content">
+                    内存分配的核心目标
+每次申请大内存块，自主管理，减少系统调用
+基于块的内存复用，加快内存分配和回收
+
+内存分配的基本策略
+每次从系统申请大块内存以减少系统调用；  
+将申请到的大块内存进行切分构成链表；  
+为对象分配内存时，只需从大小合适的链表中提取一小块；  
+回收对象内存时，会将提取的小块内存归还原链表；
+如闲置内存过多则尝试归还部分内存给操作系统；
+
+内存块Go的内存分配器将管理的内存块分为两种：
+
+span：由多个连续的页（Page）组成的大块内存；
+
+123//malloc.go PageShift = 13, PageSize = 1&lt;&lt;PageShift,  ...
+                </div>
+            </a>
+            <div class="abstract-post-meta">
+                <!-- tags  -->
+                
+                <div class= abstract-tags >
+    
+        <a class="post-tag" href="javascript:void(0);" data-href = Go>Go</a>
+    
+</div>
+                
+                <!-- date  -->
+                <div class="abstract-date">
+                    <span class="abstract-calander iconfont-archer"></span><span class="abstract-time">2018/02/08</span>
+                </div>
+            </div>
+        </article>
+    
+    
+    
+        <article class="index-post">
             <a class="abstract-title" href = "/2018/01/31/Go-Goroutine到底是什么：从进程到Go协程/" >
                 
                     <span>[Go]Goroutine到底是什么：从进程到Go协程</span>
@@ -412,7 +455,20 @@ package errors
     
     
     
-    <div class="total-archive"> Total : 5 </div>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <div class="total-archive"> Total : 6 </div>
     
     <div class="post-archive">
     
@@ -421,6 +477,11 @@ package errors
     
     <div class="archive-year"> 2018 </div>
     <ul class="year-list">
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">02/08</span><a class="archive-post-title" href= "/2018/02/08/Go-简述内存分配/" >[Go]简述内存分配</a>
+        </li>
     
     
         <li class="archive-post-item">

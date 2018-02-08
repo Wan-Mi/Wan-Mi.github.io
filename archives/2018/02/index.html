@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" >
     <title>
         
-        [Godep]如何合理更新Go项目依赖 · Wanmii&#39;s Blog.
+        Wanmii&#39;s Blog.
         
     </title>
     <link rel="icon" href= /assets/rider.png>
@@ -58,8 +58,6 @@
 </head>
 
     
-        <body class="post-body">
-    
     
 <header class="header">
 
@@ -67,71 +65,27 @@
     <div class="header-sidebar-menu">&#xe775;</div>
     <!-- post页的toggle banner  -->
     
-    <div class="banner">
-            <div class="blog-title">
-                <a href="/" >Wanmii&#39;s Blog.</a>
-            </div>
-            <div class="post-title">
-                <a href="#" class="post-name">[Godep]如何合理更新Go项目依赖</a>
-            </div>
-    </div>
-    
     <a class="home-link" href=/>Wanmii's Blog.</a>
 </header>
     <div class="wrapper">
         <div class="site-intro">
     
     <!-- 主页  -->
-    
-    
-    <!-- 404页  -->
             
-    <div class="site-intro-img" style="background-image: url(/assets/star.jpeg)"></div>
+    <div class="site-intro-img" style="background-image: url(/)"></div>
     <div class="site-intro-placeholder"></div>
     <div class="site-intro-meta">
         <!-- 标题  -->
         <h1 class="intro-title">
             <!-- 主页  -->
             
-            [Godep]如何合理更新Go项目依赖
-            <!-- 404 -->
-            
         </h1>
         <!-- 副标题 -->
         <p class="intro-subtitle">
             <!-- 主页副标题  -->
             
-            
-            <!-- 404 -->
-            
         </p>
         <!-- 文章页meta -->
-        
-            <!-- 文章页标签  -->
-            
-                <div class= post-intro-tags >
-    
-        <a class="post-tag" href="javascript:void(0);" data-href = Godep>Godep</a>
-    
-</div>
-            
-            <script>window._bd_share_config = { "common": { "bdSnsKey": {}, "bdText": "", "bdMini": "2", "bdMiniList": false, "bdPic": "", "bdStyle": "1", "bdSize": "16" }, "share": {} }; with (document) 0[(getElementsByTagName('head')[0] || body).appendChild(createElement('script')).src = "/static/api/js/share.js"];</script>
-            <div class="post-intro-meta">
-                <span class="post-intro-calander iconfont-archer">&#xe676;</span>
-                <span class="post-intro-time">2018/01/20</span>
-                <span id="busuanzi_container_page_pv" class="busuanzi-pv">
-                    <span class="iconfont-archer">&#xe604;</span>
-                    <span id="busuanzi_value_page_pv"></span>
-                </span>
-                <span class="shareWrapper">
-                    <span class="iconfont-archer shareIcon">
-                        &#xe601;
-                    </span>
-                    <span class="bdsharebuttonbox">
-                        <a href="#" class="bds_more shareText" data-cmd="more">Share</a>
-                    </span>
-                </span>
-            </div>
         
     </div>
 </div>
@@ -199,66 +153,53 @@
             }
         </script>
         <div class="container container-unloaded">
-            <main class="main post-page">
-    <article class="article-entry">
-        <p>利用godep更新依赖库，最常见的做法是将godep.json中的依赖库版本进行更新，再<code>godep save</code>即可。但这很可能会使得母库和子库的共同依赖不同步进而可能产生报错，这才是本文想解决的问题：<br>Go的包管理工具godep并不像诸如iOS包管理工具CocoaPods那样可以自动统一母库A和子库B的共同依赖(如库C)。当需要对子库B进行更新时，如果单纯的在库A中更新库B，则有可能发生同一个项目A中存在不同版本的依赖库C的情况。<br>为了解决上述问题可进行如下操作:<br>1、在B路径中更新子库B（此时C可能也会跟着更新）</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git pull</span><br></pre></td></tr></table></figure>
-<p>2、 在A路径中移除项目A中的Godeps和Vender文件夹：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">rm -rf Godep vender</span><br></pre></td></tr></table></figure>
-<p>3、在项目A中重新生成Godeps和Vender文件夹：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">godep save ./...</span><br></pre></td></tr></table></figure>
-<p>2和3两步看似相互抵消，实际上统一了A和B的所依赖的C的版本号，该版本为第1步中B更新后的C的版本。产生次效果的原因主要是：在<code>godep save</code>操作中godep工具首先会查找Godep目录中的Godeps.json文件，根据文件中的指定依赖生成vender；<strong>当godep目录不存在时，会根据项目中的依赖路径寻找GOPATH中的依赖库，并据此生成Godep和Vender目录。</strong> 本技巧正是根据上述特性实现共同依赖库版本号的统一。</p>
-
-    </article>
-    <!-- 前后页  -->
-    <ul class="post-pager">
-        
-            <li class="next">
-                <a href= "/2018/01/22/Go-并发同步的两种方式/" title= [Go]并发同步的两种方式 >
-                    <span>Next Post</span>
-                    <span>[Go]并发同步的两种方式</span>
-                </a>
-            </li>
-        
-        
-            <li class="previous">
-                <a href= "/2018/01/20/Go-slice、map、channel与struct的初始化/" title= [Go]slice、map、channel与struct的初始化 >
-                    <span>Previous Post</span>
-                    <span>[Go]slice、map、channel与struct的初始化</span>
-                </a>
-            </li>
-        
-    </ul>
-    <!-- 评论插件 -->
-    <!-- 来必力City版安装代码 -->
-
-<!-- City版安装代码已完成 -->
+            <main class="main index-page">
     
     
-<div id="container"></div>
-<link rel="stylesheet" href="https://imsun.github.io/gitment/style/default.css">
-<script src="https://imsun.github.io/gitment/dist/gitment.browser.js"></script>
-<script>
-    var gitment = new Gitment({
-        // id: "[Godep]如何合理更新Go项目依赖", // 可选。默认为 location.href
-        owner: 'Wan-Mi',
-        repo: 'gitment',
-        oauth: {
-            client_id: 'b443566e66a0f059c0a1',
-            client_secret: '848822efecb8717e632b51086c53b0e78e16d7cf',
-        },
-    })
-    gitment.render('container')
-
-</script>
-
-    <!--PC版-->
-
-    <!--PC版-->
-
-
     
-    <!-- 评论 -->
+        <article class="index-post">
+            <a class="abstract-title" href = "/2018/02/08/Go-简述内存分配/" >
+                
+                    <span>[Go]简述内存分配</span>
+            </a>
+            <a class="content-show-full" href = "/2018/02/08/Go-简述内存分配/" >
+                <div class="abstract-content">
+                    内存分配的核心目标
+每次申请大内存块，自主管理，减少系统调用
+基于块的内存复用，加快内存分配和回收
+
+内存分配的基本策略
+每次从系统申请大块内存以减少系统调用；  
+将申请到的大块内存进行切分构成链表；  
+为对象分配内存时，只需从大小合适的链表中提取一小块；  
+回收对象内存时，会将提取的小块内存归还原链表；
+如闲置内存过多则尝试归还部分内存给操作系统；
+
+内存块Go的内存分配器将管理的内存块分为两种：
+
+span：由多个连续的页（Page）组成的大块内存；
+
+123//malloc.go PageShift = 13, PageSize = 1&lt;&lt;PageShift,  ...
+                </div>
+            </a>
+            <div class="abstract-post-meta">
+                <!-- tags  -->
+                
+                <div class= abstract-tags >
+    
+        <a class="post-tag" href="javascript:void(0);" data-href = Go>Go</a>
+    
+</div>
+                
+                <!-- date  -->
+                <div class="abstract-date">
+                    <span class="abstract-calander iconfont-archer"></span><span class="abstract-time">2018/02/08</span>
+                </div>
+            </div>
+        </article>
+    
+    <!-- paginator  -->
+    
 </main>
             <!-- profile -->
             
@@ -298,13 +239,6 @@
 </footer>
     </div>
     <!-- toc -->
-    
-    <div class="toc-wrapper">
-        <div class="toc-catalog">
-            <span class="iconfont-archer catalog-icon">&#xe613;</span><span>CATALOG</span>
-        </div>
-        
-    </div>
     
     <div class="back-top">&#xe639;</div>
     <div class="sidebar">

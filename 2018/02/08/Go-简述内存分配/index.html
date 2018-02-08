@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" >
     <title>
         
-        [Godep]如何合理更新Go项目依赖 · Wanmii&#39;s Blog.
+        [Go]简述内存分配 · Wanmii&#39;s Blog.
         
     </title>
     <link rel="icon" href= /assets/rider.png>
@@ -72,7 +72,7 @@
                 <a href="/" >Wanmii&#39;s Blog.</a>
             </div>
             <div class="post-title">
-                <a href="#" class="post-name">[Godep]如何合理更新Go项目依赖</a>
+                <a href="#" class="post-name">[Go]简述内存分配</a>
             </div>
     </div>
     
@@ -93,7 +93,7 @@
         <h1 class="intro-title">
             <!-- 主页  -->
             
-            [Godep]如何合理更新Go项目依赖
+            [Go]简述内存分配
             <!-- 404 -->
             
         </h1>
@@ -111,14 +111,14 @@
             
                 <div class= post-intro-tags >
     
-        <a class="post-tag" href="javascript:void(0);" data-href = Godep>Godep</a>
+        <a class="post-tag" href="javascript:void(0);" data-href = Go>Go</a>
     
 </div>
             
             <script>window._bd_share_config = { "common": { "bdSnsKey": {}, "bdText": "", "bdMini": "2", "bdMiniList": false, "bdPic": "", "bdStyle": "1", "bdSize": "16" }, "share": {} }; with (document) 0[(getElementsByTagName('head')[0] || body).appendChild(createElement('script')).src = "/static/api/js/share.js"];</script>
             <div class="post-intro-meta">
                 <span class="post-intro-calander iconfont-archer">&#xe676;</span>
-                <span class="post-intro-time">2018/01/20</span>
+                <span class="post-intro-time">2018/02/08</span>
                 <span id="busuanzi_container_page_pv" class="busuanzi-pv">
                     <span class="iconfont-archer">&#xe604;</span>
                     <span id="busuanzi_value_page_pv"></span>
@@ -201,30 +201,68 @@
         <div class="container container-unloaded">
             <main class="main post-page">
     <article class="article-entry">
-        <p>利用godep更新依赖库，最常见的做法是将godep.json中的依赖库版本进行更新，再<code>godep save</code>即可。但这很可能会使得母库和子库的共同依赖不同步进而可能产生报错，这才是本文想解决的问题：<br>Go的包管理工具godep并不像诸如iOS包管理工具CocoaPods那样可以自动统一母库A和子库B的共同依赖(如库C)。当需要对子库B进行更新时，如果单纯的在库A中更新库B，则有可能发生同一个项目A中存在不同版本的依赖库C的情况。<br>为了解决上述问题可进行如下操作:<br>1、在B路径中更新子库B（此时C可能也会跟着更新）</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git pull</span><br></pre></td></tr></table></figure>
-<p>2、 在A路径中移除项目A中的Godeps和Vender文件夹：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">rm -rf Godep vender</span><br></pre></td></tr></table></figure>
-<p>3、在项目A中重新生成Godeps和Vender文件夹：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">godep save ./...</span><br></pre></td></tr></table></figure>
-<p>2和3两步看似相互抵消，实际上统一了A和B的所依赖的C的版本号，该版本为第1步中B更新后的C的版本。产生次效果的原因主要是：在<code>godep save</code>操作中godep工具首先会查找Godep目录中的Godeps.json文件，根据文件中的指定依赖生成vender；<strong>当godep目录不存在时，会根据项目中的依赖路径寻找GOPATH中的依赖库，并据此生成Godep和Vender目录。</strong> 本技巧正是根据上述特性实现共同依赖库版本号的统一。</p>
+        <h2 id="内存分配的核心目标"><a href="#内存分配的核心目标" class="headerlink" title="内存分配的核心目标"></a>内存分配的核心目标</h2><ul>
+<li>每次申请大内存块，自主管理，减少系统调用</li>
+<li>基于块的内存复用，加快内存分配和回收</li>
+</ul>
+<h2 id="内存分配的基本策略"><a href="#内存分配的基本策略" class="headerlink" title="内存分配的基本策略"></a>内存分配的基本策略</h2><ol>
+<li>每次从系统申请大块内存以减少系统调用；  </li>
+<li>将申请到的大块内存进行切分构成链表；  </li>
+<li>为对象分配内存时，只需从大小合适的链表中提取一小块；  </li>
+<li>回收对象内存时，会将提取的小块内存归还原链表；</li>
+<li>如闲置内存过多则尝试归还部分内存给操作系统；</li>
+</ol>
+<h2 id="内存块"><a href="#内存块" class="headerlink" title="内存块"></a>内存块</h2><p>Go的内存分配器将管理的内存块分为两种：</p>
+<ul>
+<li>span：由多个连续的页（Page）组成的大块内存；</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">//malloc.go</span><br><span class="line"> PageShift = 13,</span><br><span class="line"> PageSize = 1&lt;&lt;PageShift,   //8192 bytes</span><br></pre></td></tr></table></figure>
+<ul>
+<li>object：将span按特定大小切成小块，每一小块可存储一个对象。</li>
+</ul>
+<h2 id="管理组件"><a href="#管理组件" class="headerlink" title="管理组件"></a>管理组件</h2><p>Go采用了<code>tcmalloc</code>的内存分配架构，分配器由三种组建组成：  </p>
+<ul>
+<li>heap：全局根对象。负责向操作系统申请新内存，并管理闲置span。</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">//mheap.go</span><br><span class="line">type mheap struct &#123;	free      [_MaxMHeapList]mSpanList // 127页以内的闲置span链表</span><br><span class="line">	freelarge mSpanList                // 超过127页（&gt;=1M）的大span链表</span><br><span class="line">	</span><br><span class="line">	//每个central对应一种sizeclass</span><br><span class="line">	central [_NumSizeClasses]struct &#123;</span><br><span class="line">		mcentral mcentral</span><br><span class="line">		pad      [sys.CacheLineSize]byte</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>central：从heap获取空闲span，切分好，供给cache使用：  </li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">//mcentral.go</span><br><span class="line">type mcentral struct &#123;</span><br><span class="line">	lock      mutex</span><br><span class="line">	sizeclass int32    // 规格大小</span><br><span class="line">	nonempty  mSpanList // 尚有空闲对象的span链表</span><br><span class="line">	empty     mSpanList // 无空闲对象的span列表</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>cache：每个运行的工作线程都会绑定一个cache，用于无锁对象分配。内部有个以等级为序号的数组，持有多个切分好的span。不够时向对应的central获取新span：</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">//mcache.go </span><br><span class="line">type mcache struct &#123;</span><br><span class="line">	// 以sizeclass为索引管理多个用于分配的span</span><br><span class="line">	alloc [_NumSizeClasses]*mspan </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="分配流程"><a href="#分配流程" class="headerlink" title="分配流程"></a>分配流程</h2><ul>
+<li>大于32KB的对象使用heap直接分配；</li>
+<li>小于16B的对象使用cache的小对象分配器进行分配；</li>
+<li>中间大小的对象会从<code>mcache.alloc[sizeclass]</code>中找到对象size等级对应的span进行内存分配；  如span不足则根据<code>heap.central[sizeclass]</code>找到对应central获取span；  如central无可用span则向heap申请;  heap也没有空间则向系统申请新的内存。</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">_TinySize      = 16        // 16B</span><br><span class="line">_MaxSmallSize  = 32768     // 32KB</span><br></pre></td></tr></table></figure>
+<h2 id="回收流程"><a href="#回收流程" class="headerlink" title="回收流程"></a>回收流程</h2><p> 针对heap上分配的对象，直接在heap上回收。其他对象回收方式如下：</p>
+<ul>
+<li>垃圾回收器将可回收对象交还给所属<code>span.freelist</code>；</li>
+<li>将该span放回central以便任意cache重新获取；</li>
+<li>如一个span收回了所有的对象，则将其交还给heap，以便重新切分复用；</li>
+<li>垃圾回收器定期扫描获取heap里长期闲置的span，释放其占用内存。</li>
+</ul>
+<p>–</p>
+<p>Reference:</p>
+<ul>
+<li><a href="https://github.com/qyuhen/book/blob/master/Go%201.5%20%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%20%EF%BC%88%E4%B9%A6%E7%AD%BE%E7%89%88%EF%BC%89.pdf" target="_blank" rel="noopener">《Go 1.5源码剖析》</a></li>
+<li><a href="https://github.com/qyuhen/book/blob/master/Go%20%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%20%E7%AC%AC%E5%9B%9B%E7%89%88.pdf" target="_blank" rel="noopener">《Go 学习笔记 第四版》</a></li>
+<li><a href="https://tracymacding.gitbooks.io/implementation-of-golang/content/memory/memory_alloc_alg.html" target="_blank" rel="noopener">《Implementation of Golang》</a></li>
+</ul>
 
     </article>
     <!-- 前后页  -->
     <ul class="post-pager">
         
-            <li class="next">
-                <a href= "/2018/01/22/Go-并发同步的两种方式/" title= [Go]并发同步的两种方式 >
-                    <span>Next Post</span>
-                    <span>[Go]并发同步的两种方式</span>
-                </a>
-            </li>
-        
         
             <li class="previous">
-                <a href= "/2018/01/20/Go-slice、map、channel与struct的初始化/" title= [Go]slice、map、channel与struct的初始化 >
+                <a href= "/2018/01/31/Go-Goroutine到底是什么：从进程到Go协程/" title= [Go]Goroutine到底是什么：从进程到Go协程 >
                     <span>Previous Post</span>
-                    <span>[Go]slice、map、channel与struct的初始化</span>
+                    <span>[Go]Goroutine到底是什么：从进程到Go协程</span>
                 </a>
             </li>
         
@@ -240,7 +278,7 @@
 <script src="https://imsun.github.io/gitment/dist/gitment.browser.js"></script>
 <script>
     var gitment = new Gitment({
-        // id: "[Godep]如何合理更新Go项目依赖", // 可选。默认为 location.href
+        // id: "[Go]简述内存分配", // 可选。默认为 location.href
         owner: 'Wan-Mi',
         repo: 'gitment',
         oauth: {
@@ -303,7 +341,7 @@
         <div class="toc-catalog">
             <span class="iconfont-archer catalog-icon">&#xe613;</span><span>CATALOG</span>
         </div>
-        
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#内存分配的核心目标"><span class="toc-number">1.</span> <span class="toc-text">内存分配的核心目标</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#内存分配的基本策略"><span class="toc-number">2.</span> <span class="toc-text">内存分配的基本策略</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#内存块"><span class="toc-number">3.</span> <span class="toc-text">内存块</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#管理组件"><span class="toc-number">4.</span> <span class="toc-text">管理组件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#分配流程"><span class="toc-number">5.</span> <span class="toc-text">分配流程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#回收流程"><span class="toc-number">6.</span> <span class="toc-text">回收流程</span></a></li></ol>
     </div>
     
     <div class="back-top">&#xe639;</div>
