@@ -158,6 +158,39 @@
     
     
         <article class="index-post">
+            <a class="abstract-title" href = "/2018/02/09/Go-简述垃圾回收/" >
+                
+                    <span>[Go]简述垃圾回收（GC）</span>
+            </a>
+            <a class="content-show-full" href = "/2018/02/09/Go-简述垃圾回收/" >
+                <div class="abstract-content">
+                    GC问题的核心是：抑制堆增长，充分利用CPU资源。Go所采用的GC算法是经典标记-清除算法的进一步改良。本文在介绍Go中GC逻辑之前会先介绍基本的GC算法。
+基本GC算法基本的垃圾回收（GC）算法有四种：引用计数法（Reference Counting）、复制法（Copying）、标记-清除法（Mark-Sweep）和标记-压缩法（Mark-Compact）。注：在某些语言环境中会同时使用其中的多种算法进行垃圾回收。
+基本流程
+检查分配内存总量是否超过预设阈值；
+如超过阈值，暂停一切用户逻辑，进行垃圾回收（不释放物理内存）；
+垃圾回收完成后，恢复用户逻辑，将阈值设为存活对象所用内存的2被...
+                </div>
+            </a>
+            <div class="abstract-post-meta">
+                <!-- tags  -->
+                
+                <div class= abstract-tags >
+    
+        <a class="post-tag" href="javascript:void(0);" data-href = Go>Go</a>
+    
+</div>
+                
+                <!-- date  -->
+                <div class="abstract-date">
+                    <span class="abstract-calander iconfont-archer"></span><span class="abstract-time">2018/02/09</span>
+                </div>
+            </div>
+        </article>
+    
+    
+    
+        <article class="index-post">
             <a class="abstract-title" href = "/2018/02/08/Go-简述内存分配/" >
                 
                     <span>[Go]简述内存分配</span>
@@ -309,7 +342,18 @@ span：由多个连续的页（Page）组成的大块内存；
     
     
     
-    <div class="total-archive"> Total : 6 </div>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <div class="total-archive"> Total : 7 </div>
     
     <div class="post-archive">
     
@@ -318,6 +362,11 @@ span：由多个连续的页（Page）组成的大块内存；
     
     <div class="archive-year"> 2018 </div>
     <ul class="year-list">
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">02/09</span><a class="archive-post-title" href= "/2018/02/09/Go-简述垃圾回收/" >[Go]简述垃圾回收（GC）</a>
+        </li>
     
     
         <li class="archive-post-item">

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" >
     <title>
         
-        [Go]slice、map、channel与struct的初始化 · Wanmii&#39;s Blog.
+        [Go]简述垃圾回收（GC） · Wanmii&#39;s Blog.
         
     </title>
     <link rel="icon" href= /assets/rider.png>
@@ -72,7 +72,7 @@
                 <a href="/" >Wanmii&#39;s Blog.</a>
             </div>
             <div class="post-title">
-                <a href="#" class="post-name">[Go]slice、map、channel与struct的初始化</a>
+                <a href="#" class="post-name">[Go]简述垃圾回收（GC）</a>
             </div>
     </div>
     
@@ -93,7 +93,7 @@
         <h1 class="intro-title">
             <!-- 主页  -->
             
-            [Go]slice、map、channel与struct的初始化
+            [Go]简述垃圾回收（GC）
             <!-- 404 -->
             
         </h1>
@@ -118,7 +118,7 @@
             <script>window._bd_share_config = { "common": { "bdSnsKey": {}, "bdText": "", "bdMini": "2", "bdMiniList": false, "bdPic": "", "bdStyle": "1", "bdSize": "16" }, "share": {} }; with (document) 0[(getElementsByTagName('head')[0] || body).appendChild(createElement('script')).src = "/static/api/js/share.js"];</script>
             <div class="post-intro-meta">
                 <span class="post-intro-calander iconfont-archer">&#xe676;</span>
-                <span class="post-intro-time">2018/01/20</span>
+                <span class="post-intro-time">2018/02/09</span>
                 <span id="busuanzi_container_page_pv" class="busuanzi-pv">
                     <span class="iconfont-archer">&#xe604;</span>
                     <span id="busuanzi_value_page_pv"></span>
@@ -201,33 +201,78 @@
         <div class="container container-unloaded">
             <main class="main post-page">
     <article class="article-entry">
-        <p>本文介绍golang中的三种引用类型slice、map和channel以及结构体的初始化方法以及一些潜在的坑。<br>先上代码：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br></pre></td><td class="code"><pre><span class="line">package main</span><br><span class="line"></span><br><span class="line">import (</span><br><span class="line">    &quot;fmt&quot;</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line">type Location struct &#123;</span><br><span class="line">    UUID       string</span><br><span class="line">    Longitude  float64</span><br><span class="line">    Latitude   float64</span><br><span class="line">    DetectedAt int64</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">func main() &#123;</span><br><span class="line"></span><br><span class="line">    // slice</span><br><span class="line">    var s1 []int</span><br><span class="line">    s1 = append(s1, 1)</span><br><span class="line"></span><br><span class="line">    s2 := make([]int,0)</span><br><span class="line">    s2 = append(s2, 2)</span><br><span class="line"></span><br><span class="line">    s3 := []int&#123;&#125;</span><br><span class="line">    s3 = append(s3, 3)</span><br><span class="line"></span><br><span class="line">    fmt.Println(s1,s2,s3)</span><br><span class="line"></span><br><span class="line">    // map</span><br><span class="line">    var m1 map[string]int</span><br><span class="line">    //    m1[&quot;key&quot;] = 1</span><br><span class="line"></span><br><span class="line">    m2 := make(map[string]int)</span><br><span class="line">    m2[&quot;key&quot;] = 2</span><br><span class="line"></span><br><span class="line">    m3 := map[string]int&#123;&#125;</span><br><span class="line">    m3[&quot;key&quot;] = 3</span><br><span class="line"></span><br><span class="line">    fmt.Println(m1,m2,m3)</span><br><span class="line"></span><br><span class="line">    // channel</span><br><span class="line">    //    var c1 chan int</span><br><span class="line">    //    go func() &#123;</span><br><span class="line">    //        c1&lt;- 1</span><br><span class="line">    //    &#125;()</span><br><span class="line">    //    fmt.Println(&lt;-c1)</span><br><span class="line"></span><br><span class="line">    c2 := make(chan int,0)</span><br><span class="line">    go func() &#123;</span><br><span class="line">    c2&lt;- 2</span><br><span class="line">    &#125;()</span><br><span class="line">    fmt.Println(&lt;-c2)</span><br><span class="line"></span><br><span class="line">    // stuct</span><br><span class="line">    var t1 *Location</span><br><span class="line">    //    t1.UUID = &quot;abc&quot;</span><br><span class="line"></span><br><span class="line">    t2 := new(Location)</span><br><span class="line">    t2.UUID = &quot;abc&quot;</span><br><span class="line"></span><br><span class="line">    t3 := &amp;Location&#123;&#125;</span><br><span class="line">    t3.UUID = &quot;abc&quot;</span><br><span class="line"></span><br><span class="line">    fmt.Println(t1,t2,t3)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>上述代码在 <a href="https://play.golang.org" target="_blank" rel="noopener">https://play.golang.org</a> 中的运行结果为：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[1] [2] [3]</span><br><span class="line">map[] map[key:2] map[key:3]</span><br><span class="line">2</span><br><span class="line">&lt;nil&gt; &amp;&#123;abc 0 0 0&#125; &amp;&#123;abc 0 0 0&#125;</span><br></pre></td></tr></table></figure>
-<p>以下进行详细说明：<br><strong>slice：</strong> 可以使用var声明、make、以及字面量三种方式初始化。可以看出s1、s2、s3均可以正常使用append方法进行slice扩充。比较有意思的是var声明后的slice初始值为nil，但使用起来不会报错（panic）。 对此Golang.org blog中的说法是：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">a nil slice is functionally equivalent to a zero-length slice, even</span><br><span class="line">though it points to nothing. It has length zero and can be appended</span><br><span class="line">to, with allocation.</span><br></pre></td></tr></table></figure>
-<p>也就是说nil slice和zero-length slice在功能上是相等的。而且，为了避免不表要的内存分配，<strong>个人建议使用<code>var s1 []int</code>的方式初始化。</strong></p>
-<p><strong>map：</strong> 使用了var声明、make、以及字面量三种方式初始化。其中m2和m3的效果相同，而m1的赋值之所以被注释掉，因为其与slice不同，nil map的赋值会引起panic。</p>
-<p><strong>channel：</strong> 使用了var声明、make两种方式初始化。其中c1被注释掉是因为nil channel无法传递信息，会造成死锁。所以只建议使用<code>make(chan int,len)</code>方法进行初始化，也方便用第二个参数设置channel的容量。</p>
-<p><strong>struct：</strong> 使用了var声明、new、以及字面量三种方式初始化。t1被注释掉的原因同m1相同，对nil的结构体内部赋值会造成panic。<strong>这也是新手经常会踩的一个坑，当函数的返回值为结构体时一定要判断是否为空，否则一访问其中字段就崩溃。</strong> 而new和字面量都是比较安全的初始化方式。</p>
+        <p>GC问题的核心是：抑制堆增长，充分利用CPU资源。Go所采用的GC算法是经典标记-清除算法的进一步改良。本文在介绍Go中GC逻辑之前会先介绍基本的GC算法。</p>
+<h2 id="基本GC算法"><a href="#基本GC算法" class="headerlink" title="基本GC算法"></a>基本GC算法</h2><p>基本的垃圾回收（GC）算法有四种：引用计数法（Reference Counting）、复制法（Copying）、标记-清除法（Mark-Sweep）和标记-压缩法（Mark-Compact）。<br><strong>注</strong>：在某些语言环境中会同时使用其中的多种算法进行垃圾回收。</p>
+<h3 id="基本流程"><a href="#基本流程" class="headerlink" title="基本流程"></a>基本流程</h3><ol>
+<li>检查分配内存总量是否超过预设阈值；</li>
+<li>如超过阈值，暂停一切用户逻辑，进行垃圾回收（不释放物理内存）；</li>
+<li>垃圾回收完成后，恢复用户逻辑，将阈值设为存活对象所用内存的2被；</li>
+<li>专有线程定期（如2分钟）回收物理内存。闲置超过一定时间（如5分钟）的span物理内存也会被操作系统收回。</li>
+</ol>
+<h3 id="基本概念"><a href="#基本概念" class="headerlink" title="基本概念"></a>基本概念</h3><ul>
+<li>mutator和collector：collector指的是垃圾回收器；mutator原意是增变基因，java中代指设值方法，此处是指程序本身（非collector的部分），mutator的作用是分配内存和内存读写。</li>
+<li>mutator root：mutator根对象指分配在堆内存以外，可被mutator直接访问的变量。如：静态／全局变量和局部变量。</li>
+<li>可达对象：从mutator根对象遍历，可直接访问到的变量。</li>
+</ul>
+<h3 id="基本原理"><a href="#基本原理" class="headerlink" title="基本原理"></a>基本原理</h3><ul>
+<li>引用计数法（Reference Counting）：初始化对象后令其引用计数为1，增加一个引用计数加1，释放一个引用计数减1，GC时会回收引用计数为0的对象。该方法最大的缺点是无法解决循环引用的问题，python和iOS使用该方法进行垃圾回收。</li>
+<li>复制法（Copying）：此算法将内存划分为两个相同大小的区域，每次只使用其中一个区域，GC进行时将使用区域中正在使用的对象复制到空的那片区域，再回收原区域。该方法的优点是在GC回收的同时进行了碎片整理，缺点是需要较大的内存空间。</li>
+<li>标记-清除法（Mark-Sweep）：顾名思义，就是先标记后清除。具体过程是先暂停mutator（StopTheWorld）；然后通过mutator根对象遍历内存空间中的对象，进行标记；collector回收未被标记的内存空间；恢复mutator运行。该方法会产生一定的内存碎片。</li>
+<li>标记-压缩法（Mark-Compact）：结合复制法和标记清除法的优点，在标记清除法先标记再清除的基础上，再对标记对象进行复制整理存放至堆的某一块区域，以清理碎片。  </li>
+</ul>
+<p>在上述算法的基础上还会有一些综合策略：</p>
+<ul>
+<li>分代回收法（Generational Collecting）：把对象分为“新生代”、“老生代”和“持久代”，对不同生命周期状态的对象采用不同的垃圾回收算法。  对新生对象（新生代）进行高频回收（称为“小回收”），对所有对象进行低频回收（称为“大回收”）。每次小回收后存活的对象归为老生代。  分代回收法可以有效<strong>缩短GC的平均中断时间</strong>。</li>
+</ul>
+<hr>
+<p><em>写屏障（Write Barrier）：指程序对所有涉及修改对象内容的地方进行保护。  在分代回收中，如果某个“新生代对象“被“老生代对象”所引用，它就不应该在“小回收”时被回收。因而需要引入写屏障，用一个记录集来记录老生代对新生代的引用关系，确保有引用关系的新生代不被“小回收”。</em></p>
+<hr>
+<ul>
+<li><p>增量回收法（Incremental Collecting）：对于实时性比较强的应用场景，需要控制<strong>GC的最长中段时间</strong>。于是有了增量回收法，将一个完整的GC中断切分为多个中断，每个中断时间不超过阈值T。 由于不同段的GC过程中，对象引用可能会发生改变，所以同样需要写屏障。  该方式虽然限制了最长中断时间，但由于次数增加，总的中断时间会有所增加。</p>
+</li>
+<li><p>并发回收（Concurrent Collecting）：经典的垃圾回收算法在GC过程中会暂停用户行为（StopTheWorld）。并发回收在多线程垃圾回收的基础上，不暂停用户操作环境，即在程序运行的同时并发进行垃圾回收（此处说的“不暂停”并非完全完全不暂停）。</p>
+</li>
+</ul>
+<h2 id="Go中的GC算法"><a href="#Go中的GC算法" class="headerlink" title="Go中的GC算法"></a>Go中的GC算法</h2><p>Go语言GC相关机制和内容在源码<code>mgc.go</code>中有详细介绍：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">// Garbage collector (GC).</span><br><span class="line">//</span><br><span class="line">// The GC runs concurrently with mutator threads, is type accurate (aka precise), allows multiple</span><br><span class="line">// GC thread to run in parallel. It is a concurrent mark and sweep that uses a write barrier. It is</span><br><span class="line">// non-generational and non-compacting. Allocation is done using size segregated per P allocation</span><br><span class="line">// areas to minimize fragmentation while eliminating locks in the common case.</span><br><span class="line">......</span><br></pre></td></tr></table></figure>
+<p>直译就是：通过“写屏障”并发的标记和清除（回收内存），不分代，不压缩。<br>相信有了前一小节的基础，这句话就很好理解了。下文还会介绍一些Go中GC算法的基本实现过程和组件。</p>
+<h3 id="三色标记法"><a href="#三色标记法" class="headerlink" title="三色标记法"></a>三色标记法</h3><p>Go中的GC使用了三色标记法，它是标记操作和用户代码并发的基本保障。基本步骤：</p>
+<ul>
+<li>起初标记所有对象为白色；</li>
+<li>扫描出所有可达对象（mutator root）标记为灰色，放入带处理队列；</li>
+<li>从队列提取灰色对象，将其引用对象标记为灰色放入队列，自身标记为黑色；</li>
+<li>重复上一步骤，直至灰色队列中无对象；</li>
+<li>写屏障监控对象内存修改，重新标色或放回队列，重复上述步骤；</li>
+<li>回收所有白色对象。</li>
+</ul>
+<hr>
+<p>三色标记法有个潜在缺陷：由于GC和Mutator同时进行，当垃圾回收速度赶不上产生速度时，垃圾会越来越多。</p>
+<hr>
+<h3 id="控制器"><a href="#控制器" class="headerlink" title="控制器"></a>控制器</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">// GC Controller</span><br><span class="line">//</span><br><span class="line">// gcController implements the GC pacing controller that determines</span><br><span class="line">// when to trigger concurrent garbage collection and how much marking</span><br><span class="line">// work to do in mutator assists and background marking.</span><br><span class="line">//</span><br><span class="line">// It uses a feedback control algorithm to adjust the memstats.gc_trigger</span><br><span class="line">// trigger based on the heap growth and GC CPU utilization each cycle.</span><br><span class="line">// This algorithm optimizes for heap growth to match GOGC and for CPU</span><br><span class="line">// utilization between assist and background marking to be 25% of</span><br><span class="line">// GOMAXPROCS. The high-level design of this algorithm is documented</span><br><span class="line">// at https://golang.org/s/go15gcpacing.</span><br></pre></td></tr></table></figure>
+<p>GC控制器会全程参与GC过程，并完成以下工作：</p>
+<ul>
+<li>控制GC过程中“标记”过程的工作模式和数量；</li>
+<li>通过反馈算法，监控堆的增长速度和GC CPU的利用率来调整GC触发时机；</li>
+</ul>
+<h3 id="辅助回收"><a href="#辅助回收" class="headerlink" title="辅助回收"></a>辅助回收</h3><p>前文提到，三色标记法中，对象分配速度比后台标记速度慢时会产生问题。因而GO GC中引入了“辅助回收”机制，当遇到上述问题时，会让用户程序线程与后台线程一起参与GC过程，从而平衡内存的分配和回收。</p>
+<hr>
+<p>Reference：</p>
+<ul>
+<li><a href="https://github.com/qyuhen/book/blob/master/Go%201.5%20%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%20%EF%BC%88%E4%B9%A6%E7%AD%BE%E7%89%88%EF%BC%89.pdf" target="_blank" rel="noopener">《Go 1.5源码剖析》</a>  </li>
+<li><a href="https://www.jianshu.com/p/b0f5d21fe031" target="_blank" rel="noopener">标记-清除算法</a></li>
+<li><a href="https://www.kawabangga.com/posts/1336" target="_blank" rel="noopener">垃圾回收（GC）的三种基本方式</a></li>
+<li><a href="http://www.importnew.com/18740.html" target="_blank" rel="noopener">JVM调优总结（2）：基本垃圾回收算法</a></li>
+</ul>
 
     </article>
     <!-- 前后页  -->
     <ul class="post-pager">
         
-            <li class="next">
-                <a href= "/2018/01/20/Godep-如何合理更新Go项目依赖/" title= [Godep]如何合理更新Go项目依赖 >
-                    <span>Next Post</span>
-                    <span>[Godep]如何合理更新Go项目依赖</span>
-                </a>
-            </li>
-        
         
             <li class="previous">
-                <a href= "/2018/01/19/Go-错误类型error与panic/" title= [Go]错误类型error与panic >
+                <a href= "/2018/02/08/Go-简述内存分配/" title= [Go]简述内存分配 >
                     <span>Previous Post</span>
-                    <span>[Go]错误类型error与panic</span>
+                    <span>[Go]简述内存分配</span>
                 </a>
             </li>
         
@@ -243,7 +288,7 @@
 <script src="https://imsun.github.io/gitment/dist/gitment.browser.js"></script>
 <script>
     var gitment = new Gitment({
-        // id: "[Go]slice、map、channel与struct的初始化", // 可选。默认为 location.href
+        // id: "[Go]简述垃圾回收（GC）", // 可选。默认为 location.href
         owner: 'Wan-Mi',
         repo: 'gitment',
         oauth: {
@@ -306,7 +351,7 @@
         <div class="toc-catalog">
             <span class="iconfont-archer catalog-icon">&#xe613;</span><span>CATALOG</span>
         </div>
-        
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#基本GC算法"><span class="toc-number">1.</span> <span class="toc-text">基本GC算法</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#基本流程"><span class="toc-number">1.1.</span> <span class="toc-text">基本流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#基本概念"><span class="toc-number">1.2.</span> <span class="toc-text">基本概念</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#基本原理"><span class="toc-number">1.3.</span> <span class="toc-text">基本原理</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Go中的GC算法"><span class="toc-number">2.</span> <span class="toc-text">Go中的GC算法</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#三色标记法"><span class="toc-number">2.1.</span> <span class="toc-text">三色标记法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#控制器"><span class="toc-number">2.2.</span> <span class="toc-text">控制器</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#辅助回收"><span class="toc-number">2.3.</span> <span class="toc-text">辅助回收</span></a></li></ol></li></ol>
     </div>
     
     <div class="back-top">&#xe639;</div>
