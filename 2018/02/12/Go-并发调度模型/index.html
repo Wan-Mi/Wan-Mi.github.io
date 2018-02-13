@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" >
     <title>
         
-        Wanmii&#39;s Blog.
+        [Go]并发调度模型 · Wanmii&#39;s Blog.
         
     </title>
     <link rel="icon" href= /assets/rider.png>
@@ -58,6 +58,8 @@
 </head>
 
     
+        <body class="post-body">
+    
     
 <header class="header">
 
@@ -65,27 +67,71 @@
     <div class="header-sidebar-menu">&#xe775;</div>
     <!-- post页的toggle banner  -->
     
+    <div class="banner">
+            <div class="blog-title">
+                <a href="/" >Wanmii&#39;s Blog.</a>
+            </div>
+            <div class="post-title">
+                <a href="#" class="post-name">[Go]并发调度模型</a>
+            </div>
+    </div>
+    
     <a class="home-link" href=/>Wanmii's Blog.</a>
 </header>
     <div class="wrapper">
         <div class="site-intro">
     
     <!-- 主页  -->
+    
+    
+    <!-- 404页  -->
             
-    <div class="site-intro-img" style="background-image: url(/)"></div>
+    <div class="site-intro-img" style="background-image: url(/assets/star.jpeg)"></div>
     <div class="site-intro-placeholder"></div>
     <div class="site-intro-meta">
         <!-- 标题  -->
         <h1 class="intro-title">
             <!-- 主页  -->
             
+            [Go]并发调度模型
+            <!-- 404 -->
+            
         </h1>
         <!-- 副标题 -->
         <p class="intro-subtitle">
             <!-- 主页副标题  -->
             
+            
+            <!-- 404 -->
+            
         </p>
         <!-- 文章页meta -->
+        
+            <!-- 文章页标签  -->
+            
+                <div class= post-intro-tags >
+    
+        <a class="post-tag" href="javascript:void(0);" data-href = Go>Go</a>
+    
+</div>
+            
+            <script>window._bd_share_config = { "common": { "bdSnsKey": {}, "bdText": "", "bdMini": "2", "bdMiniList": false, "bdPic": "", "bdStyle": "1", "bdSize": "16" }, "share": {} }; with (document) 0[(getElementsByTagName('head')[0] || body).appendChild(createElement('script')).src = "/static/api/js/share.js"];</script>
+            <div class="post-intro-meta">
+                <span class="post-intro-calander iconfont-archer">&#xe676;</span>
+                <span class="post-intro-time">2018/02/12</span>
+                <span id="busuanzi_container_page_pv" class="busuanzi-pv">
+                    <span class="iconfont-archer">&#xe604;</span>
+                    <span id="busuanzi_value_page_pv"></span>
+                </span>
+                <span class="shareWrapper">
+                    <span class="iconfont-archer shareIcon">
+                        &#xe601;
+                    </span>
+                    <span class="bdsharebuttonbox">
+                        <a href="#" class="bds_more shareText" data-cmd="more">Share</a>
+                    </span>
+                </span>
+            </div>
         
     </div>
 </div>
@@ -153,40 +199,68 @@
             }
         </script>
         <div class="container container-unloaded">
-            <main class="main index-page">
+            <main class="main post-page">
+    <article class="article-entry">
+        <p>Go因Goroutine而与众不同。<br>在Go程序中所有的用户代码都运行在Goroutine中，为了让程序高效运行需要一个合理的调度机制进行Goroutine的并发调度。  Go语言内置运行时，面向并发需求设计了全新的架构模型——GPM调度模型。  </p>
+<ul>
+<li>G：Goroutine的简称。  虽然Go进程内的一切都以G的方式运行，但G并非执行体，它仅保存并发任务状态，为任务执行提供栈内存空间；</li>
+<li>M：系统线程（OS Thread）的代称，M取自其寓意Machine的首字母。  M是代码的实际执行体。其通过修改寄存器，将执行栈指向G自带栈内存，并在此空间内分配栈堆帧，执行任务函数。  M必须绑定一个有效的P才被允许执行任务，否则只能休眠。</li>
+<li>P：Processor的简称，可理解为（调度）处理器，作用类似于CPU核，用来控制可同时并发执行的任务数量。P还为M提供执行资源，如：对象分配内存、本地任务队列。  P是G和M的中间层，其数量通过<code>GOMAXPROCS</code>控制。一个G想要运行起来首先需要被分配一个P，然后M再和P绑定以调度循环的方式不断执行G并发任务。</li>
+</ul>
+<hr>
+<p>调度器初始化函数：<code>schedinit()</code>除了内存分配、垃圾回收等操作外还会设置MaxMcount（M的最大值）和 GOMAXPROCS(P最大值)。  由于在初始化后，引导过程才创建并运行main goroutine，因而在运行期间用<code>runtime.GOMAXPROCS()</code>修改P数量时需要StopTheWorld，代价很大。</p>
+<hr>
+<p>下图为一个完整的Goroutine调度模型示意图。进程中的G进入Global队列，由调度器将它们分别分配至P的Local队列。调度器创建M与P进行绑定，并循环消费（运行）P队列中的G。当M因陷入系统调用而长期阻塞时，P会被调度器收回并唤醒（新建）M与其绑定。<br><img src="img/goroutine-scheduler-model.png" alt=""><br><em>注:图片引用自<a href="http://tonybai.com/2017/06/23/an-intro-about-goroutine-scheduler/" target="_blank" rel="noopener">也谈goroutine调度器</a></em>  </p>
+<hr>
+<p>Reference：</p>
+<ul>
+<li><a href="https://github.com/qyuhen/book/blob/master/Go%201.5%20%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%20%EF%BC%88%E4%B9%A6%E7%AD%BE%E7%89%88%EF%BC%89.pdf" target="_blank" rel="noopener">《Go 1.5源码剖析》</a> </li>
+<li><a href="http://tonybai.com/2017/06/23/an-intro-about-goroutine-scheduler/" target="_blank" rel="noopener">也谈goroutine调度器</a></li>
+</ul>
+
+    </article>
+    <!-- 前后页  -->
+    <ul class="post-pager">
+        
+        
+            <li class="previous">
+                <a href= "/2018/02/09/Go-简述垃圾回收/" title= [Go]简述垃圾回收（GC） >
+                    <span>Previous Post</span>
+                    <span>[Go]简述垃圾回收（GC）</span>
+                </a>
+            </li>
+        
+    </ul>
+    <!-- 评论插件 -->
+    <!-- 来必力City版安装代码 -->
+
+<!-- City版安装代码已完成 -->
     
     
+<div id="container"></div>
+<link rel="stylesheet" href="https://imsun.github.io/gitment/style/default.css">
+<script src="https://imsun.github.io/gitment/dist/gitment.browser.js"></script>
+<script>
+    var gitment = new Gitment({
+        // id: "[Go]并发调度模型", // 可选。默认为 location.href
+        owner: 'Wan-Mi',
+        repo: 'gitment',
+        oauth: {
+            client_id: 'b443566e66a0f059c0a1',
+            client_secret: '848822efecb8717e632b51086c53b0e78e16d7cf',
+        },
+    })
+    gitment.render('container')
+
+</script>
+
+    <!--PC版-->
+
+    <!--PC版-->
+
+
     
-        <article class="index-post">
-            <a class="abstract-title" href = "/2018/01/20/Godep-如何合理更新Go项目依赖/" >
-                
-                    <span>[Godep]如何合理更新Go项目依赖</span>
-            </a>
-            <a class="content-show-full" href = "/2018/01/20/Godep-如何合理更新Go项目依赖/" >
-                <div class="abstract-content">
-                    利用godep更新依赖库，最常见的做法是将godep.json中的依赖库版本进行更新，再godep save即可。但这很可能会使得母库和子库的共同依赖不同步进而可能产生报错，这才是本文想解决的问题：Go的包管理工具godep并不像诸如iOS包管理工具CocoaPods那样可以自动统一母库A和子库B的共同依赖(如库C)。当需要对子库B进行更新时，如果单纯的在库A中更新库B，则有可能发生同一个项目A中存在不同版本的依赖库C的情况。为了解决上述问题可进行如下操作:1、在B路径中更新子库B（此时C可能也会跟着更新）
-1git pull
-2、 在A路径中移除项目A中的Godeps和Vender文件...
-                </div>
-            </a>
-            <div class="abstract-post-meta">
-                <!-- tags  -->
-                
-                <div class= abstract-tags >
-    
-        <a class="post-tag" href="javascript:void(0);" data-href = Godep>Godep</a>
-    
-</div>
-                
-                <!-- date  -->
-                <div class="abstract-date">
-                    <span class="abstract-calander iconfont-archer"></span><span class="abstract-time">2018/01/20</span>
-                </div>
-            </div>
-        </article>
-    
-    <!-- paginator  -->
-    
+    <!-- 评论 -->
 </main>
             <!-- profile -->
             
@@ -226,6 +300,13 @@
 </footer>
     </div>
     <!-- toc -->
+    
+    <div class="toc-wrapper">
+        <div class="toc-catalog">
+            <span class="iconfont-archer catalog-icon">&#xe613;</span><span>CATALOG</span>
+        </div>
+        
+    </div>
     
     <div class="back-top">&#xe639;</div>
     <div class="sidebar">

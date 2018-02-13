@@ -158,6 +158,37 @@
     
     
         <article class="index-post">
+            <a class="abstract-title" href = "/2018/02/12/Go-并发调度模型/" >
+                
+                    <span>[Go]并发调度模型</span>
+            </a>
+            <a class="content-show-full" href = "/2018/02/12/Go-并发调度模型/" >
+                <div class="abstract-content">
+                    Go因Goroutine而与众不同。在Go程序中所有的用户代码都运行在Goroutine中，为了让程序高效运行需要一个合理的调度机制进行Goroutine的并发调度。  Go语言内置运行时，面向并发需求设计了全新的架构模型——GPM调度模型。  
+
+G：Goroutine的简称。  虽然Go进程内的一切都以G的方式运行，但G并非执行体，它仅保存并发任务状态，为任务执行提供栈内存空间；
+M：系统线程（OS Thread）的代称，M取自其寓意Machine的首字母。  M是代码的实际执行体。其通过修改寄存器，将执行栈指向G自带栈内存，并在此空间内分配栈堆帧，执行任务函数。  M必须绑定一个有...
+                </div>
+            </a>
+            <div class="abstract-post-meta">
+                <!-- tags  -->
+                
+                <div class= abstract-tags >
+    
+        <a class="post-tag" href="javascript:void(0);" data-href = Go>Go</a>
+    
+</div>
+                
+                <!-- date  -->
+                <div class="abstract-date">
+                    <span class="abstract-calander iconfont-archer"></span><span class="abstract-time">2018/02/12</span>
+                </div>
+            </div>
+        </article>
+    
+    
+    
+        <article class="index-post">
             <a class="abstract-title" href = "/2018/02/09/Go-简述垃圾回收/" >
                 
                     <span>[Go]简述垃圾回收（GC）</span>
@@ -512,7 +543,18 @@ package errors
     
     
     
-    <div class="total-archive"> Total : 7 </div>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <div class="total-archive"> Total : 8 </div>
     
     <div class="post-archive">
     
@@ -521,6 +563,11 @@ package errors
     
     <div class="archive-year"> 2018 </div>
     <ul class="year-list">
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">02/12</span><a class="archive-post-title" href= "/2018/02/12/Go-并发调度模型/" >[Go]并发调度模型</a>
+        </li>
     
     
         <li class="archive-post-item">
