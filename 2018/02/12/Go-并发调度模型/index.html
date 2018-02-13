@@ -211,6 +211,7 @@
 <p>调度器初始化函数：<code>schedinit()</code>除了内存分配、垃圾回收等操作外还会设置MaxMcount（M的最大值）和 GOMAXPROCS(P最大值)。  由于在初始化后，引导过程才创建并运行main goroutine，因而在运行期间用<code>runtime.GOMAXPROCS()</code>修改P数量时需要StopTheWorld，代价很大。</p>
 <hr>
 <p>下图为一个完整的Goroutine调度模型示意图。进程中的G进入Global队列，由调度器将它们分别分配至P的Local队列。调度器创建M与P进行绑定，并循环消费（运行）P队列中的G。当M因陷入系统调用而长期阻塞时，P会被调度器收回并唤醒（新建）M与其绑定。<br><img src="goroutine-scheduler-model.png" alt=""><br><em>注:图片引用自<a href="http://tonybai.com/2017/06/23/an-intro-about-goroutine-scheduler/" target="_blank" rel="noopener">也谈goroutine调度器</a></em>  </p>
+<p>另：Go中的抢占式调度通过为G设立“抢占标记”的形式进行——监控器会对运行时间过长的G进行标记。当其进行函数调用时，被编译器安插的指令就会检查该标记，若有标记则暂停该G将其扔回全局队列。对应M继续运行P队列中其他G。</p>
 <hr>
 <p>Reference：</p>
 <ul>
