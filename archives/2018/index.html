@@ -158,6 +158,35 @@
     
     
         <article class="index-post">
+            <a class="abstract-title" href = "/2018/03/07/Go-简述Slice的底层实现/" >
+                
+                    <span>[Go]简述Slice的底层实现</span>
+            </a>
+            <a class="content-show-full" href = "/2018/03/07/Go-简述Slice的底层实现/" >
+                <div class="abstract-content">
+                    数据结构作为比较，分别查看array和slice的数据结构：
+1234567891011121314151617181920// package types// type.gotype Array struct &#123;	len  int64	elem Type&#125;// All types implement the Type interface.type Type interface &#123;	Underlying() Type	String() string&#125;// package runtime// slice.go type slice struct &#...
+                </div>
+            </a>
+            <div class="abstract-post-meta">
+                <!-- tags  -->
+                
+                <div class= abstract-tags >
+    
+        <a class="post-tag" href="javascript:void(0);" data-href = Go>Go</a>
+    
+</div>
+                
+                <!-- date  -->
+                <div class="abstract-date">
+                    <span class="abstract-calander iconfont-archer"></span><span class="abstract-time">2018/03/07</span>
+                </div>
+            </div>
+        </article>
+    
+    
+    
+        <article class="index-post">
             <a class="abstract-title" href = "/2018/02/12/Go-并发调度模型/" >
                 
                     <span>[Go]并发调度模型</span>
@@ -556,7 +585,20 @@ package errors
     
     
     
-    <div class="total-archive"> Total : 8 </div>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <div class="total-archive"> Total : 9 </div>
     
     <div class="post-archive">
     
@@ -565,6 +607,11 @@ package errors
     
     <div class="archive-year"> 2018 </div>
     <ul class="year-list">
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">03/07</span><a class="archive-post-title" href= "/2018/03/07/Go-简述Slice的底层实现/" >[Go]简述Slice的底层实现</a>
+        </li>
     
     
         <li class="archive-post-item">
