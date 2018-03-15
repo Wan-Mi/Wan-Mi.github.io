@@ -171,6 +171,35 @@
     
     
         <article class="index-post">
+            <a class="abstract-title" href = "/2018/03/07/Go-简述Map的底层实现/" >
+                
+                    <span>[Go]简述Map的底层实现</span>
+            </a>
+            <a class="content-show-full" href = "/2018/03/07/Go-简述Map的底层实现/" >
+                <div class="abstract-content">
+                    数据结构和大多数语言一样，Golang中的Map同样是利用哈希表作为基础结构来实现的。
+12345678910111213141516171819202122232425262728// package runtime  hashmap.gotype hmap struct &#123;	count     int // map长度	flags     uint8  //标记	B         uint8  // log以2为底哈希桶的对数 (最多能存 6.5 * 2^B 个元素)	noverflow uint16 // 溢出桶的个数（近似）	hash0     uint32 // 哈...
+                </div>
+            </a>
+            <div class="abstract-post-meta">
+                <!-- tags  -->
+                
+                <div class= abstract-tags >
+    
+        <a class="post-tag" href="javascript:void(0);" data-href = Go>Go</a>
+    
+</div>
+                
+                <!-- date  -->
+                <div class="abstract-date">
+                    <span class="abstract-calander iconfont-archer"></span><span class="abstract-time">2018/03/07</span>
+                </div>
+            </div>
+        </article>
+    
+    
+    
+        <article class="index-post">
             <a class="abstract-title" href = "/2018/03/07/Go-简述Slice的底层实现/" >
                 
                     <span>[Go]简述Slice的底层实现</span>
@@ -648,7 +677,22 @@ package errors
     
     
     
-    <div class="total-archive"> Total : 9 </div>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <div class="total-archive"> Total : 10 </div>
     
     <div class="post-archive">
     
@@ -657,6 +701,11 @@ package errors
     
     <div class="archive-year"> 2018 </div>
     <ul class="year-list">
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">03/07</span><a class="archive-post-title" href= "/2018/03/07/Go-简述Map的底层实现/" >[Go]简述Map的底层实现</a>
+        </li>
     
     
         <li class="archive-post-item">
