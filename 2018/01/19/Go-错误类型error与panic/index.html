@@ -202,47 +202,19 @@
             <main class="main post-page">
     <article class="article-entry">
         <h2 id="error类型与package-errors"><a href="#error类型与package-errors" class="headerlink" title="error类型与package errors"></a>error类型与package errors</h2><p>先看error类型定义：</p>
-<pre><code>type error interface {
-    Error() string
-}
-</code></pre><p>由定义可看出error是一个含有<code>Error()</code>函数的接口。换句话说，任何结构体只要实现了该函数就继承了error类型。常见的创建error类型对象的方式有两种：</p>
-<pre><code>errors.New(&quot;errorString&quot;)
-fmt.Errorf(&quot;errorString&quot;)
-</code></pre><p>其中，package errors源码为：</p>
-<pre><code>package errors
-
-// New returns an error that formats as the given text.
-func New(text string) error {
-    return &amp;errorString{text}
-}
-
-// errorString is a trivial implementation of error.
-type errorString struct {
-    s string
-}
-
-func (e *errorString) Error() string {
-    return e.s
-}
-</code></pre><p>errors包中的errorString类型实现了<code>Error()</code>函数，并通过<code>New()</code>方法初始化。<br><code>fmt.Errorf()</code>源码：</p>
-<pre><code>func Errorf(format string, a ...interface{}) error {
-    return errors.New(Sprintf(format, a...))
-}
-</code></pre><p>可见，fmt.Errorf()只是换种方式的errors.New()。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> error <span class="keyword">interface</span> &#123;</span><br><span class="line">    Error() <span class="keyword">string</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>由定义可看出error是一个含有<code>Error()</code>函数的接口。换句话说，任何结构体只要实现了该函数就继承了error类型。常见的创建error类型对象的方式有两种：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">errors.New(<span class="string">"errorString"</span>)</span><br><span class="line">fmt.Errorf(<span class="string">"errorString"</span>)</span><br></pre></td></tr></table></figure>
+<p>其中，package errors源码为：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> errors</span><br><span class="line"></span><br><span class="line"><span class="comment">// New returns an error that formats as the given text.</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">New</span><span class="params">(text <span class="keyword">string</span>)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">    <span class="keyword">return</span> &amp;errorString&#123;text&#125;</span><br><span class="line">&#125;</span><br><span class="line">    </span><br><span class="line"><span class="comment">// errorString is a trivial implementation of error.</span></span><br><span class="line"><span class="keyword">type</span> errorString <span class="keyword">struct</span> &#123;</span><br><span class="line">    s <span class="keyword">string</span></span><br><span class="line">&#125;</span><br><span class="line">    </span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(e *errorString)</span> <span class="title">Error</span><span class="params">()</span> <span class="title">string</span></span> &#123;</span><br><span class="line">    <span class="keyword">return</span> e.s</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>errors包中的errorString类型实现了<code>Error()</code>函数，并通过<code>New()</code>方法初始化。<br><code>fmt.Errorf()</code>源码：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">Errorf</span><span class="params">(format <span class="keyword">string</span>, a ...<span class="keyword">interface</span>&#123;&#125;)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">    <span class="keyword">return</span> errors.New(Sprintf(format, a...))</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>可见，fmt.Errorf()只是换种方式的errors.New()。</p>
 <h2 id="panic-与recover"><a href="#panic-与recover" class="headerlink" title="panic()与recover()"></a>panic()与recover()</h2><p>panic和recover都是Go标准库中的函数。panic的字面意思是“恐慌的”，往往是指那些无法修复的错误。比如数字除以0，数组越界，空指针取值等。由于panic类型错误往往可使得程序崩溃，因而需要使用recover对panic进行捕获，从而做进一步处理避免崩溃。<br>还是先看定义：</p>
-<pre><code>func panic(v interface{})
-func recover() interface{}
-</code></pre><p>其中，panic是入参为空接口（可传任何值）返参为空的一个函数，而recover正好反过来。当二者配合使用时，recover捕获的正好是panic传入的值。使用示例：</p>
-<pre><code>func testPanic() {
-// 必须使用defer关键字在延迟调用函数内直接recover()
-    defer func() {
-        fmt.Println(recover())
-    }()
-
-    a := 0
-    fmt.Println(1 / a)
-}
-</code></pre><p>上述代码的运行结果为：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">panic</span><span class="params">(v <span class="keyword">interface</span>&#123;&#125;)</span></span></span><br><span class="line"><span class="function"><span class="title">func</span> <span class="title">recover</span><span class="params">()</span> <span class="title">interface</span></span>&#123;&#125;</span><br></pre></td></tr></table></figure>
+<p>其中，panic是入参为空接口（可传任何值）返参为空的一个函数，而recover正好反过来。当二者配合使用时，recover捕获的正好是panic传入的值。使用示例：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">testPanic</span><span class="params">()</span></span> &#123;</span><br><span class="line"><span class="comment">// 必须使用defer关键字在延迟调用函数内直接recover()</span></span><br><span class="line">    <span class="keyword">defer</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">        fmt.Println(<span class="built_in">recover</span>())</span><br><span class="line">    &#125;()</span><br><span class="line"></span><br><span class="line">    a := <span class="number">0</span></span><br><span class="line">    fmt.Println(<span class="number">1</span> / a)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>上述代码的运行结果为：</p>
 <pre><code>runtime error: integer divide by zero
 </code></pre><p>例子中故意使用了一个除数为0的运算触发panic（当然也可以直接调用<code>panic(&quot;message&quot;)</code>函数触发）。不过panic被成功捕获并打印出来，程序得以继续运行。如果panic没有被捕获，错误信号会一直向外层传递产生运行时错误，导致程序崩困。<br><strong>值得说明的是，<code>recover()</code>函数必须放在<code>defer func()</code>中直接延迟调用才能生效，<code>defer recover()</code>这种写法也不行。如果不用defer关键字，panic会直接触发没有机会运行recover；而如果不放在闭包中，recover将无法捕获所在函数或方法层的panic。</strong></p>
 <p>最后，是否需要将一些error转为panic。个人建议是尽量对每个error进行处理，只有当在主流程遇到无法修复的错误时，才考虑使用<code>panic()</code>。</p>
@@ -348,6 +320,10 @@ func recover() interface{}
     <div class="sidebar-content sidebar-content-show-archive">
           <div class="sidebar-archive">
     <!-- 在ejs中将archive按照时间排序 -->
+    
+    
+    
+    
     
     
     
