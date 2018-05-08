@@ -363,7 +363,7 @@ span：由多个连续的页（Page）组成的大块内存；
             <a class="content-show-full" href = "/2018/01/22/Go-并发同步的两种方式/" >
                 <div class="abstract-content">
                     适用于并发查询计算等业务场景。
-使用channel12345678910111213141516171819202122232425// channelfunc TestChan() &#123;	numbers := []int32&#123;		1, 2, 3, 4, 5,	&#125;	ch := make(chan int32, 0)	for _, x := range append(numbers, 1) &#123;		go func(x int32) &#123;			x++			ch &lt;- x		&#125;(x)	&#125;	resNums := []int32...
+使用channel12345678910111213141516171819202122232425// channelfunc TestChan() &#123;	numbers := []int32&#123;		1, 2, 3, 4, 5,	&#125;	ch := make(chan int32, 0)	for _, x := range numbers &#123;		go func(x int32) &#123;			x++			ch &lt;- x		&#125;(x)	&#125;	resNums := []int32&#123;&#125...
                 </div>
             </a>
             <div class="abstract-post-meta">
@@ -527,10 +527,6 @@ span：由多个连续的页（Page）组成的大块内存；
     <div class="sidebar-content sidebar-content-show-archive">
           <div class="sidebar-archive">
     <!-- 在ejs中将archive按照时间排序 -->
-    
-    
-    
-    
     
     
     
