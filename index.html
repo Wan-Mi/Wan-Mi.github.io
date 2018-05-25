@@ -171,6 +171,37 @@
     
     
         <article class="index-post">
+            <a class="abstract-title" href = "/2018/05/24/Go-基于Gin的Web服务端构建/" >
+                
+                    <span>[Go]基于Gin的Web服务端构建</span>
+            </a>
+            <a class="content-show-full" href = "/2018/05/24/Go-基于Gin的Web服务端构建/" >
+                <div class="abstract-content">
+                    关于Gin的基本使用方法可移步Gin中文文档  
+本文以个人实际工程经验为基础，介绍了一种简易但实用的Web服务端构建方式，demo源码见文末。
+包含状态的HTTPServer封装要起一个Web服务，首先需要有一个server监听接口并接收http请求。Go在net/http包中有内置的http.server，结构包含了监听端口号Addr、处理方法Handler以及超时设置等属性。有一点不足的是，其没有一个属性或方法能返回当前server的状态。因而需要进行简单封装：
+1234567891011type HTTPServer struct &#123;	server *http.Serv...
+                </div>
+            </a>
+            <div class="abstract-post-meta">
+                <!-- tags  -->
+                
+                <div class= abstract-tags >
+    
+        <a class="post-tag" href="javascript:void(0);" data-href = Go Gin>Go Gin</a>
+    
+</div>
+                
+                <!-- date  -->
+                <div class="abstract-date">
+                    <span class="abstract-calander iconfont-archer"></span><span class="abstract-time">2018/05/24</span>
+                </div>
+            </div>
+        </article>
+    
+    
+    
+        <article class="index-post">
             <a class="abstract-title" href = "/2018/03/07/Go-简述Map的底层实现/" >
                 
                     <span>[Go]简述Map的底层实现</span>
@@ -454,40 +485,11 @@ span：由多个连续的页（Page）组成的大块内存；
             </div>
         </article>
     
-    
-    
-        <article class="index-post">
-            <a class="abstract-title" href = "/2018/01/19/Go-错误类型error与panic/" >
-                
-                    <span>[Go]错误类型error与panic</span>
-            </a>
-            <a class="content-show-full" href = "/2018/01/19/Go-错误类型error与panic/" >
-                <div class="abstract-content">
-                    error类型与package errors先看error类型定义：
-123type error interface &#123;    Error() string&#125;
-由定义可看出error是一个含有Error()函数的接口。换句话说，任何结构体只要实现了该函数就继承了error类型。常见的创建error类型对象的方式有两种：
-12errors.New("errorString")fmt.Errorf("errorString")
-其中，package errors源码为：
-123456789101112131415package errors// New returns a...
-                </div>
-            </a>
-            <div class="abstract-post-meta">
-                <!-- tags  -->
-                
-                <div class= abstract-tags >
-    
-        <a class="post-tag" href="javascript:void(0);" data-href = Go>Go</a>
-    
-</div>
-                
-                <!-- date  -->
-                <div class="abstract-date">
-                    <span class="abstract-calander iconfont-archer"></span><span class="abstract-time">2018/01/19</span>
-                </div>
-            </div>
-        </article>
-    
     <!-- paginator  -->
+    
+    <nav class="page-nav">
+        <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="extend next" rel="next" href="/page/2/">#NEXT</a>
+    </nav>
     
 </main>
             <!-- profile -->
@@ -687,7 +689,14 @@ span：由多个连续的页（Page）组成的大块内存；
     
     
     
-    <div class="total-archive"> Total : 10 </div>
+    
+    
+    
+    
+    
+    
+    
+    <div class="total-archive"> Total : 11 </div>
     
     <div class="post-archive">
     
@@ -696,6 +705,11 @@ span：由多个连续的页（Page）组成的大块内存；
     
     <div class="archive-year"> 2018 </div>
     <ul class="year-list">
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">05/24</span><a class="archive-post-title" href= "/2018/05/24/Go-基于Gin的Web服务端构建/" >[Go]基于Gin的Web服务端构建</a>
+        </li>
     
     
         <li class="archive-post-item">
@@ -753,6 +767,8 @@ span：由多个连续的页（Page）组成的大块内存；
     <div class="sidebar-tags-name">
     
         <span class="sidebar-tag-name"><a href= "#">Go</a></span>
+    
+        <span class="sidebar-tag-name"><a href= "#">Go Gin</a></span>
     
         <span class="sidebar-tag-name"><a href= "#">Godep</a></span>
     

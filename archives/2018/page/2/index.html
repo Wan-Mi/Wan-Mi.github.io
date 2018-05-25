@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" >
     <title>
         
-        [Go]简述内存分配 · Wanmii&#39;s Blog.
+        Wanmii&#39;s Blog.
         
     </title>
     <link rel="icon" href= /assets/rider.png>
@@ -58,8 +58,6 @@
 </head>
 
     
-        <body class="post-body">
-    
     
 <header class="header">
 
@@ -67,71 +65,27 @@
     <div class="header-sidebar-menu">&#xe775;</div>
     <!-- post页的toggle banner  -->
     
-    <div class="banner">
-            <div class="blog-title">
-                <a href="/" >Wanmii&#39;s Blog.</a>
-            </div>
-            <div class="post-title">
-                <a href="#" class="post-name">[Go]简述内存分配</a>
-            </div>
-    </div>
-    
     <a class="home-link" href=/>Wanmii's Blog.</a>
 </header>
     <div class="wrapper">
         <div class="site-intro">
     
     <!-- 主页  -->
-    
-    
-    <!-- 404页  -->
             
-    <div class="site-intro-img" style="background-image: url(/assets/star.jpeg)"></div>
+    <div class="site-intro-img" style="background-image: url(/)"></div>
     <div class="site-intro-placeholder"></div>
     <div class="site-intro-meta">
         <!-- 标题  -->
         <h1 class="intro-title">
             <!-- 主页  -->
             
-            [Go]简述内存分配
-            <!-- 404 -->
-            
         </h1>
         <!-- 副标题 -->
         <p class="intro-subtitle">
             <!-- 主页副标题  -->
             
-            
-            <!-- 404 -->
-            
         </p>
         <!-- 文章页meta -->
-        
-            <!-- 文章页标签  -->
-            
-                <div class= post-intro-tags >
-    
-        <a class="post-tag" href="javascript:void(0);" data-href = Go>Go</a>
-    
-</div>
-            
-            <script>window._bd_share_config = { "common": { "bdSnsKey": {}, "bdText": "", "bdMini": "2", "bdMiniList": false, "bdPic": "", "bdStyle": "1", "bdSize": "16" }, "share": {} }; with (document) 0[(getElementsByTagName('head')[0] || body).appendChild(createElement('script')).src = "/static/api/js/share.js"];</script>
-            <div class="post-intro-meta">
-                <span class="post-intro-calander iconfont-archer">&#xe676;</span>
-                <span class="post-intro-time">2018/02/08</span>
-                <span id="busuanzi_container_page_pv" class="busuanzi-pv">
-                    <span class="iconfont-archer">&#xe604;</span>
-                    <span id="busuanzi_value_page_pv"></span>
-                </span>
-                <span class="shareWrapper">
-                    <span class="iconfont-archer shareIcon">
-                        &#xe601;
-                    </span>
-                    <span class="bdsharebuttonbox">
-                        <a href="#" class="bds_more shareText" data-cmd="more">Share</a>
-                    </span>
-                </span>
-            </div>
         
     </div>
 </div>
@@ -199,111 +153,47 @@
             }
         </script>
         <div class="container container-unloaded">
-            <main class="main post-page">
-    <article class="article-entry">
-        <h2 id="内存分配的核心目标"><a href="#内存分配的核心目标" class="headerlink" title="内存分配的核心目标"></a>内存分配的核心目标</h2><ul>
-<li>每次申请大内存块，自主管理，减少系统调用</li>
-<li>基于块的内存复用，加快内存分配和回收</li>
-</ul>
-<h2 id="内存分配的基本策略"><a href="#内存分配的基本策略" class="headerlink" title="内存分配的基本策略"></a>内存分配的基本策略</h2><ol>
-<li>每次从系统申请大块内存以减少系统调用；  </li>
-<li>将申请到的大块内存进行切分构成链表；  </li>
-<li>为对象分配内存时，只需从大小合适的链表中提取一小块；  </li>
-<li>回收对象内存时，会将提取的小块内存归还原链表；</li>
-<li>如闲置内存过多则尝试归还部分内存给操作系统；</li>
-</ol>
-<h2 id="内存块"><a href="#内存块" class="headerlink" title="内存块"></a>内存块</h2><p>Go的内存分配器将管理的内存块分为两种：</p>
-<ul>
-<li>span：由多个连续的页（Page）组成的大块内存；</li>
-</ul>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//malloc.go</span></span><br><span class="line"> PageShift = <span class="number">13</span>,</span><br><span class="line"> PageSize = <span class="number">1</span>&lt;&lt;PageShift,   <span class="comment">//8192 bytes</span></span><br></pre></td></tr></table></figure>
-<ul>
-<li>object：将span按特定大小切成小块，每一小块可存储一个对象。</li>
-</ul>
-<h2 id="管理组件"><a href="#管理组件" class="headerlink" title="管理组件"></a>管理组件</h2><p>Go采用了<code>tcmalloc</code>的内存分配架构，分配器由三种组建组成：  </p>
-<ul>
-<li>heap：全局根对象。负责向操作系统申请新内存，并管理闲置span。</li>
-</ul>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//mheap.go</span></span><br><span class="line"><span class="keyword">type</span> mheap <span class="keyword">struct</span> &#123;</span><br><span class="line">	free      [_MaxMHeapList]mSpanList <span class="comment">// 127页以内的闲置span链表</span></span><br><span class="line">	freelarge mSpanList                <span class="comment">// 超过127页（&gt;=1M）的大span链表</span></span><br><span class="line">	</span><br><span class="line">	<span class="comment">//每个central对应一种sizeclass</span></span><br><span class="line">	central [_NumSizeClasses]<span class="keyword">struct</span> &#123;</span><br><span class="line">		mcentral mcentral</span><br><span class="line">		pad      [sys.CacheLineSize]<span class="keyword">byte</span></span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<ul>
-<li>central：从heap获取空闲span，切分好，供给cache使用：  </li>
-</ul>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//mcentral.go</span></span><br><span class="line"><span class="keyword">type</span> mcentral <span class="keyword">struct</span> &#123;</span><br><span class="line">	lock      mutex</span><br><span class="line">	sizeclass <span class="keyword">int32</span>    <span class="comment">// 规格大小</span></span><br><span class="line">	nonempty  mSpanList <span class="comment">// 尚有空闲对象的span链表</span></span><br><span class="line">	empty     mSpanList <span class="comment">// 无空闲对象的span列表</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<ul>
-<li>cache：每个运行的工作线程都会绑定一个cache，用于无锁对象分配。内部有个以等级为序号的数组，持有多个切分好的span。不够时向对应的central获取新span：</li>
-</ul>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//mcache.go </span></span><br><span class="line"><span class="keyword">type</span> mcache <span class="keyword">struct</span> &#123;</span><br><span class="line">	<span class="comment">// 以sizeclass为索引管理多个用于分配的span</span></span><br><span class="line">	alloc [_NumSizeClasses]*mspan </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h2 id="分配流程"><a href="#分配流程" class="headerlink" title="分配流程"></a>分配流程</h2><ul>
-<li>大于32KB的对象使用heap直接分配；</li>
-<li>小于16B的对象使用cache的小对象分配器进行分配；</li>
-<li>中间大小的对象会从<code>mcache.alloc[sizeclass]</code>中找到对象size等级对应的span进行内存分配；  如span不足则根据<code>heap.central[sizeclass]</code>找到对应central获取span；  如central无可用span则向heap申请;  heap也没有空间则向系统申请新的内存。</li>
-</ul>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">_TinySize      = <span class="number">16</span>        <span class="comment">// 16B</span></span><br><span class="line">_MaxSmallSize  = <span class="number">32768</span>     <span class="comment">// 32KB</span></span><br></pre></td></tr></table></figure>
-<h2 id="回收流程"><a href="#回收流程" class="headerlink" title="回收流程"></a>回收流程</h2><p> 针对heap上分配的对象，直接在heap上回收。其他对象回收方式如下：</p>
-<ul>
-<li>垃圾回收器将可回收对象交还给所属<code>span.freelist</code>；</li>
-<li>将该span放回central以便任意cache重新获取；</li>
-<li>如一个span收回了所有的对象，则将其交还给heap，以便重新切分复用；</li>
-<li>垃圾回收器定期扫描获取heap里长期闲置的span，释放其占用内存。</li>
-</ul>
-<p>–</p>
-<p>Reference:</p>
-<ul>
-<li><a href="https://github.com/qyuhen/book/blob/master/Go%201.5%20%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%20%EF%BC%88%E4%B9%A6%E7%AD%BE%E7%89%88%EF%BC%89.pdf" target="_blank" rel="noopener">《Go 1.5源码剖析》</a></li>
-<li><a href="https://github.com/qyuhen/book/blob/master/Go%20%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%20%E7%AC%AC%E5%9B%9B%E7%89%88.pdf" target="_blank" rel="noopener">《Go 学习笔记 第四版》</a></li>
-<li><a href="https://tracymacding.gitbooks.io/implementation-of-golang/content/memory/memory_alloc_alg.html" target="_blank" rel="noopener">《Implementation of Golang》</a></li>
-</ul>
-
-    </article>
-    <!-- 前后页  -->
-    <ul class="post-pager">
-        
-            <li class="next">
-                <a href= "/2018/02/09/Go-简述垃圾回收/" title= [Go]简述垃圾回收（GC） >
-                    <span>Next Post</span>
-                    <span>[Go]简述垃圾回收（GC）</span>
-                </a>
-            </li>
-        
-        
-            <li class="previous">
-                <a href= "/2018/01/31/Go-Goroutine到底是什么：从进程到Go协程/" title= [Go]Goroutine到底是什么：从进程到Go协程 >
-                    <span>Previous Post</span>
-                    <span>[Go]Goroutine到底是什么：从进程到Go协程</span>
-                </a>
-            </li>
-        
-    </ul>
-    <!-- 评论插件 -->
-    <!-- 来必力City版安装代码 -->
-
-<!-- City版安装代码已完成 -->
+            <main class="main index-page">
     
     
-<div id="container"></div>
-<link rel="stylesheet" href="https://imsun.github.io/gitment/style/default.css">
-<script src="https://imsun.github.io/gitment/dist/gitment.browser.js"></script>
-<script>
-    var gitment = new Gitment({
-        // id: "[Go]简述内存分配", // 可选。默认为 location.href
-        owner: 'Wan-Mi',
-        repo: 'gitment',
-        oauth: {
-            client_id: 'b443566e66a0f059c0a1',
-            client_secret: '848822efecb8717e632b51086c53b0e78e16d7cf',
-        },
-    })
-    gitment.render('container')
-
-</script>
-
-    <!--PC版-->
-
-    <!--PC版-->
-
-
     
-    <!-- 评论 -->
+        <article class="index-post">
+            <a class="abstract-title" href = "/2018/01/19/Go-错误类型error与panic/" >
+                
+                    <span>[Go]错误类型error与panic</span>
+            </a>
+            <a class="content-show-full" href = "/2018/01/19/Go-错误类型error与panic/" >
+                <div class="abstract-content">
+                    error类型与package errors先看error类型定义：
+123type error interface &#123;    Error() string&#125;
+由定义可看出error是一个含有Error()函数的接口。换句话说，任何结构体只要实现了该函数就继承了error类型。常见的创建error类型对象的方式有两种：
+12errors.New("errorString")fmt.Errorf("errorString")
+其中，package errors源码为：
+123456789101112131415package errors// New returns a...
+                </div>
+            </a>
+            <div class="abstract-post-meta">
+                <!-- tags  -->
+                
+                <div class= abstract-tags >
+    
+        <a class="post-tag" href="javascript:void(0);" data-href = Go>Go</a>
+    
+</div>
+                
+                <!-- date  -->
+                <div class="abstract-date">
+                    <span class="abstract-calander iconfont-archer"></span><span class="abstract-time">2018/01/19</span>
+                </div>
+            </div>
+        </article>
+    
+    <!-- paginator  -->
+    
+    <nav class="page-nav">
+        <a class="extend prev" rel="prev" href="/archives/2018/">#PREV</a><a class="page-number" href="/archives/2018/">1</a><span class="page-number current">2</span>
+    </nav>
+    
 </main>
             <!-- profile -->
             
@@ -343,13 +233,6 @@
 </footer>
     </div>
     <!-- toc -->
-    
-    <div class="toc-wrapper">
-        <div class="toc-catalog">
-            <span class="iconfont-archer catalog-icon">&#xe613;</span><span>CATALOG</span>
-        </div>
-        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#内存分配的核心目标"><span class="toc-number">1.</span> <span class="toc-text">内存分配的核心目标</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#内存分配的基本策略"><span class="toc-number">2.</span> <span class="toc-text">内存分配的基本策略</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#内存块"><span class="toc-number">3.</span> <span class="toc-text">内存块</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#管理组件"><span class="toc-number">4.</span> <span class="toc-text">管理组件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#分配流程"><span class="toc-number">5.</span> <span class="toc-text">分配流程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#回收流程"><span class="toc-number">6.</span> <span class="toc-text">回收流程</span></a></li></ol>
-    </div>
     
     <div class="back-top">&#xe639;</div>
     <div class="sidebar">
