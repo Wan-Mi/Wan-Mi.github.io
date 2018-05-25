@@ -230,8 +230,11 @@
 <p>实际工程中有时还需要对返回结构体进行一定封装：</p>
 <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> MetaData <span class="keyword">struct</span> &#123;</span><br><span class="line">	Status  <span class="keyword">int</span></span><br><span class="line">	Message <span class="keyword">string</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> ReturnStr <span class="keyword">struct</span> &#123;</span><br><span class="line">	Meta   MetaData</span><br><span class="line">	Result <span class="keyword">interface</span>&#123;&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">WriteResponse</span><span class="params">(c *gin.Context, status <span class="keyword">int</span>, res <span class="keyword">interface</span>&#123;&#125;, err error)</span></span> &#123;</span><br><span class="line"></span><br><span class="line">	message := <span class="string">"OK"</span></span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		message = err.Error()</span><br><span class="line">	&#125;</span><br><span class="line">	c.JSON(StatusOK, ReturnStr&#123;</span><br><span class="line">		Meta: MetaData&#123;</span><br><span class="line">			Status:  status,</span><br><span class="line">			Message: message,</span><br><span class="line">		&#125;,</span><br><span class="line">		Result: res,</span><br><span class="line">	&#125;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>在WriteResponse()中只要请求成功达到服务器，都会返回200的状态码。实际返回结构体ReturnStr分为两个部分，Meta返回定制的状态码和信息，Result返回请求结果。这样做的好处是，可以对http原生的状态码进行定制和扩展，便于发现问题和前后端业务逻辑的交互。</p>
+<h2 id="启动服务"><a href="#启动服务" class="headerlink" title="启动服务"></a>启动服务</h2><p>万事具备，只需要在main函数中启动server就可以了。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	httpServer := server.NewServer(<span class="string">":8989"</span>)</span><br><span class="line">	server.Run(httpServer)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如上，先初始化了httpServer监听8989端口，再通过server.Run()将其跑起来就可以了。</p>
 <hr>
-<p>以上就是Web服务端的基本架构方法，简短但实用。<br><a href="https://github.com/Wan-Mi/ginWebService" target="_blank" rel="noopener">代码仓库地址</a></p>
+<p>以上就是Web服务端的基本架构方法，希望对你有帮助。<br><a href="https://github.com/Wan-Mi/ginWebService" target="_blank" rel="noopener">代码仓库地址</a></p>
 
     </article>
     <!-- 前后页  -->
@@ -320,7 +323,7 @@
         <div class="toc-catalog">
             <span class="iconfont-archer catalog-icon">&#xe613;</span><span>CATALOG</span>
         </div>
-        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#包含状态的HTTPServer封装"><span class="toc-number">1.</span> <span class="toc-text">包含状态的HTTPServer封装</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#服务运行状态处理"><span class="toc-number">2.</span> <span class="toc-text">服务运行状态处理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#处理函数的封装"><span class="toc-number">3.</span> <span class="toc-text">处理函数的封装</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#中间件与返回方法"><span class="toc-number">4.</span> <span class="toc-text">中间件与返回方法</span></a></li></ol>
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#包含状态的HTTPServer封装"><span class="toc-number">1.</span> <span class="toc-text">包含状态的HTTPServer封装</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#服务运行状态处理"><span class="toc-number">2.</span> <span class="toc-text">服务运行状态处理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#处理函数的封装"><span class="toc-number">3.</span> <span class="toc-text">处理函数的封装</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#中间件与返回方法"><span class="toc-number">4.</span> <span class="toc-text">中间件与返回方法</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#启动服务"><span class="toc-number">5.</span> <span class="toc-text">启动服务</span></a></li></ol>
     </div>
     
     <div class="back-top">&#xe639;</div>
@@ -334,14 +337,6 @@
     <div class="sidebar-content sidebar-content-show-archive">
           <div class="sidebar-archive">
     <!-- 在ejs中将archive按照时间排序 -->
-    
-    
-    
-    
-    
-    
-    
-    
     
     
     
