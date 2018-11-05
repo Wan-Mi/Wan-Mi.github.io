@@ -6,7 +6,7 @@ tags: Go
 本文介绍golang中的三种引用类型slice、map和channel以及结构体的初始化方法以及一些潜在的坑。
 先上代码：
 
-```
+```go
 package main
 
 import (

@@ -13,7 +13,7 @@ GC问题的核心是：抑制堆增长，充分利用CPU资源。Go所采用的G
 ### 基本流程
 1. 检查分配内存总量是否超过预设阈值；
 2. 如超过阈值，暂停一切用户逻辑，进行垃圾回收（不释放物理内存）；
-3. 垃圾回收完成后，恢复用户逻辑，将阈值设为存活对象所用内存的2被；
+3. 垃圾回收完成后，恢复用户逻辑，将阈值设为存活对象所用内存的两倍；
 4. 专有线程定期（如2分钟）回收物理内存。闲置超过一定时间（如5分钟）的span物理内存也会被操作系统收回。
 
 ### 基本概念
@@ -44,7 +44,7 @@ _写屏障（Write Barrier）：指程序对所有涉及修改对象内容的地
 
 Go语言GC相关机制和内容在源码`mgc.go`中有详细介绍：
 
-```
+```go
 // Garbage collector (GC).
 //
 // The GC runs concurrently with mutator threads, is type accurate (aka precise), allows multiple
@@ -74,7 +74,7 @@ Go中的GC使用了三色标记法，它是标记操作和用户代码并发的�
 
 
 ### 控制器
-```
+```go
 // GC Controller
 //
 // gcController implements the GC pacing controller that determines

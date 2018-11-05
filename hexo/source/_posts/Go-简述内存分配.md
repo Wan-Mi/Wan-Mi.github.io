@@ -20,7 +20,7 @@ Go的内存分配器将管理的内存块分为两种：
 
 - span：由多个连续的页（Page）组成的大块内存；
 
-```
+```go
 //malloc.go
  PageShift = 13,
  PageSize = 1<<PageShift,   //8192 bytes
@@ -33,9 +33,10 @@ Go采用了`tcmalloc`的内存分配架构，分配器由三种组建组成：
 
 - heap：全局根对象。负责向操作系统申请新内存，并管理闲置span。
 
-```
+```go
 //mheap.go
-type mheap struct {	free      [_MaxMHeapList]mSpanList // 127页以内的闲置span链表
+type mheap struct {
+	free      [_MaxMHeapList]mSpanList // 127页以内的闲置span链表
 	freelarge mSpanList                // 超过127页（>=1M）的大span链表
 	
 	//每个central对应一种sizeclass
@@ -43,11 +44,12 @@ type mheap struct {	free      [_MaxMHeapList]mSpanList // 127页以内的闲置
 		mcentral mcentral
 		pad      [sys.CacheLineSize]byte
 	}
-} ```
+} 
+```
 
 - central：从heap获取空闲span，切分好，供给cache使用：  
 
-```
+```go
 //mcentral.go
 type mcentral struct {
 	lock      mutex
@@ -59,7 +61,7 @@ type mcentral struct {
 
 - cache：每个运行的工作线程都会绑定一个cache，用于无锁对象分配。内部有个以等级为序号的数组，持有多个切分好的span。不够时向对应的central获取新span：
 
-```
+```go
 //mcache.go 
 type mcache struct {
 	// 以sizeclass为索引管理多个用于分配的span
@@ -73,7 +75,7 @@ type mcache struct {
 - 中间大小的对象会从`mcache.alloc[sizeclass]`中找到对象size等级对应的span进行内存分配；  如span不足则根据`heap.central[sizeclass] `找到对应central获取span；  如central无可用span则向heap申请;  heap也没有空间则向系统申请新的内存。
 
 
-```
+```go
 	_TinySize      = 16        // 16B
 	_MaxSmallSize  = 32768     // 32KB
 

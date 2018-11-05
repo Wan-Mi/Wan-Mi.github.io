@@ -6,7 +6,7 @@ tags: Go
 
 适用于并发查询计算等业务场景。
 ## 使用channel
-```
+```go
 // channel
 func TestChan() {
 	numbers := []int32{
@@ -14,7 +14,7 @@ func TestChan() {
 	}
 	ch := make(chan int32, 0)
 
-	for _, x := range append(numbers, 1) {
+	for _, x := range numbers {
 		go func(x int32) {
 			x++
 			ch <- x
@@ -42,7 +42,7 @@ results is: [2 3 6 2 5]
 注意：Channel的收发个数要保持一致，当收多于发时会造成死锁，最好添加超时语句做异常情况保护`case <-time.After(10 * time.Second):`。
 
 ## 使用sync.WaitGroup
-```
+```go
 // waitGroup
 func TestWaitGroup() {
 	numbers := []int32{
