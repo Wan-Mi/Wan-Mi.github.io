@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" >
     <title>
         
-        [Go]简述Slice的底层实现 · Wanmii&#39;s Blog.
+        [DB]多类型数据库基础 · Wanmii&#39;s Blog.
         
     </title>
     <link rel="icon" href= /assets/rider.png>
@@ -72,7 +72,7 @@
                 <a href="/" >Wanmii&#39;s Blog.</a>
             </div>
             <div class="post-title">
-                <a href="#" class="post-name">[Go]简述Slice的底层实现</a>
+                <a href="#" class="post-name">[DB]多类型数据库基础</a>
             </div>
     </div>
     
@@ -93,7 +93,7 @@
         <h1 class="intro-title">
             <!-- 主页  -->
             
-            [Go]简述Slice的底层实现
+            [DB]多类型数据库基础
             <!-- 404 -->
             
         </h1>
@@ -111,14 +111,14 @@
             
                 <div class= post-intro-tags >
     
-        <a class="post-tag" href="javascript:void(0);" data-href = Go>Go</a>
+        <a class="post-tag" href="javascript:void(0);" data-href = DB>DB</a>
     
 </div>
             
             <script>window._bd_share_config = { "common": { "bdSnsKey": {}, "bdText": "", "bdMini": "2", "bdMiniList": false, "bdPic": "", "bdStyle": "1", "bdSize": "16" }, "share": {} }; with (document) 0[(getElementsByTagName('head')[0] || body).appendChild(createElement('script')).src = "/static/api/js/share.js"];</script>
             <div class="post-intro-meta">
                 <span class="post-intro-calander iconfont-archer">&#xe676;</span>
-                <span class="post-intro-time">2018/03/07</span>
+                <span class="post-intro-time">2019/02/22</span>
                 <span id="busuanzi_container_page_pv" class="busuanzi-pv">
                     <span class="iconfont-archer">&#xe604;</span>
                     <span id="busuanzi_value_page_pv"></span>
@@ -201,54 +201,160 @@
         <div class="container container-unloaded">
             <main class="main post-page">
     <article class="article-entry">
-        <h2 id="数据结构"><a href="#数据结构" class="headerlink" title="数据结构"></a>数据结构</h2><p>作为比较，分别查看array和slice的数据结构：</p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// package types</span></span><br><span class="line"><span class="comment">// type.go</span></span><br><span class="line"><span class="keyword">type</span> Array <span class="keyword">struct</span> &#123;</span><br><span class="line">	<span class="built_in">len</span>  <span class="keyword">int64</span></span><br><span class="line">	elem Type</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// All types implement the Type interface.</span></span><br><span class="line"><span class="keyword">type</span> Type <span class="keyword">interface</span> &#123;</span><br><span class="line">	Underlying() Type</span><br><span class="line">	String() <span class="keyword">string</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// package runtime</span></span><br><span class="line"><span class="comment">// slice.go </span></span><br><span class="line"><span class="keyword">type</span> slice <span class="keyword">struct</span> &#123;</span><br><span class="line">	array unsafe.Pointer</span><br><span class="line">	<span class="built_in">len</span>   <span class="keyword">int</span></span><br><span class="line">	<span class="built_in">cap</span>   <span class="keyword">int</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>从结构中可以看出，虽然两者功能相似，但结构完全不同。slice通过内部指针的方式引用了一个数组片段，以实现变长方案。len表示slice元素数量，cap表示slice最大元素容量。由于这种特殊的结构，虽然slice本身是结构体，但却是引用类型。</p>
-<hr>
-<p><em>unsafe.Pointer：通过unsafe包中的注释我们可以发现“任何类型的指针值都可以转换为unsafe.Pointer”。换句话说，unsafe.Pointer是一个可以指向任何类型的指针。其类型ArbitraryType并非一个具体类型，更像一个占位符。</em></p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// unsafe.go</span></span><br><span class="line"><span class="keyword">type</span> ArbitraryType <span class="keyword">int</span></span><br><span class="line"><span class="keyword">type</span> Pointer *ArbitraryType</span><br></pre></td></tr></table></figure>
-<hr>
-<h2 id="重组（reslice）"><a href="#重组（reslice）" class="headerlink" title="重组（reslice）"></a>重组（reslice）</h2><p>reslice是指基于已有slice创建新slice的过程。其最大特点是新slice依旧指向原底层数组，因而新slice对原slice的取值范围不可超过原slice的cap。</p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">resliceDemo</span><span class="params">()</span></span> &#123;</span><br><span class="line">	s := []<span class="keyword">int32</span>&#123;</span><br><span class="line">		<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>,</span><br><span class="line">	&#125;</span><br><span class="line">	fmt.Println(<span class="string">"0-2:"</span>, s[:<span class="number">3</span>])</span><br><span class="line">	fmt.Println(<span class="string">"4-5:"</span>, s[<span class="number">3</span>:<span class="number">6</span>][<span class="number">1</span>:])</span><br><span class="line">	<span class="comment">// panic: runtime error</span></span><br><span class="line">	<span class="comment">// fmt.Println("4-5", s[4:7])</span></span><br><span class="line">	</span><br><span class="line">	t := s[<span class="number">1</span>:]</span><br><span class="line">	fmt.Printf(<span class="string">"%p,%p\n"</span>, s, t)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>运行结果：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">0-2: [0 1 2]</span><br><span class="line">4-5: [4 5]</span><br><span class="line">0xc42000a240,0xc42000a244</span><br></pre></td></tr></table></figure>
-<p>前两行输出可以看出，通过reslice的方式构建新slice时，取值范围为“左闭右开”，且允许连续截取。最后一行中，t是从s的第二个元素开始截取的新slice，由于指向原底层数组，其地址为原地址+4（int32，4字节），输出符合预期。</p>
-<h2 id="扩容（append）"><a href="#扩容（append）" class="headerlink" title="扩容（append）"></a>扩容（append）</h2><p>append函数可向slice尾部添加元素。</p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">appendDemo</span><span class="params">()</span></span> &#123;</span><br><span class="line">    s := []<span class="keyword">int32</span>&#123;</span><br><span class="line">		  <span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>,</span><br><span class="line">	   &#125;</span><br><span class="line">    s1 := <span class="built_in">append</span>(s, <span class="number">6</span>)</span><br><span class="line">    s2 := <span class="built_in">append</span>(s1, <span class="number">7</span>, <span class="number">8</span>)</span><br><span class="line">    fmt.Println(<span class="string">"s2:"</span>, s2)</span><br><span class="line">    fmt.Println(<span class="string">"cap:"</span>, <span class="built_in">cap</span>(s), <span class="built_in">cap</span>(s1), <span class="built_in">cap</span>(s2))</span><br><span class="line">    fmt.Printf(<span class="string">"addr: %p,%p\n"</span>, s, s1)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>运行结果：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">s2: [0 1 2 3 4 5 6 7 8]</span><br><span class="line">cap: 6 12 12</span><br><span class="line">addr: 0xc42000a260,0xc4200180f0</span><br></pre></td></tr></table></figure>
-<p>demo中，s通过字面量形式初始化，len和cap为元素个数6。append函数可一次在slice尾部添加一个或多个元素。当元素个数大于cap时，slice的cap会进行扩容。当slice进行扩容时，会重新生成一个大容量底层数组，再将原数组值和添加值复制到新数组。由于数组copy通过值传递，会消耗等量内存且耗时。个人建议在slice初始化时设定足够大的cap用来append，可减少内存和时间损耗。<br>通常扩容后的slice cap会增大到原来两倍，当元素个数超过1024时，增大倍数会减少到1.25倍。</p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">appendCapDemo</span><span class="params">()</span></span> &#123;</span><br><span class="line">   m, n := <span class="number">1000</span>, <span class="number">5000</span></span><br><span class="line">	a, b := <span class="built_in">make</span>([]<span class="keyword">int32</span>, m, m), <span class="built_in">make</span>([]<span class="keyword">int32</span>, n, n)</span><br><span class="line">	a1, b1 := <span class="built_in">append</span>(a, <span class="number">1</span>), <span class="built_in">append</span>(b, <span class="number">1</span>)</span><br><span class="line">	fmt.Println(<span class="built_in">cap</span>(a1), <span class="built_in">cap</span>(b1))</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>运行结果：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">2048 6816</span><br></pre></td></tr></table></figure>
-<h2 id="拷贝（copy）"><a href="#拷贝（copy）" class="headerlink" title="拷贝（copy）"></a>拷贝（copy）</h2><p>copy函数可用于slice拷贝。</p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">appendCapDemo</span><span class="params">()</span></span> &#123;</span><br><span class="line">	s := []<span class="keyword">int32</span>&#123;</span><br><span class="line">		<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>,</span><br><span class="line">	&#125;	</span><br><span class="line">	s3 := s[:<span class="number">5</span>]</span><br><span class="line">	s4 := s[<span class="number">5</span>:]</span><br><span class="line">	s5 := <span class="built_in">copy</span>(s3, s4) <span class="comment">// des:s3, src:s4</span></span><br><span class="line">	fmt.Println(s3, s4, s5)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>运行结果：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[5 1 2 3 4] [5] 1</span><br></pre></td></tr></table></figure>
-<p>demo中可看出，slice拷贝更准确的说应该是slice的元素拷贝。其所要拷贝的元素个数以短slice len为准。有两小点要注意的是：copy函数两个参数，目标slice在前，来源slice在后；copy函数运行成功后目标slice直接被改变，copy函数的返回值为拷贝的元素个数（打印的S5），并非返回slice。</p>
-<hr>
-<p>Reference：</p>
+        <h2 id="常用数据库"><a href="#常用数据库" class="headerlink" title="常用数据库"></a>常用数据库</h2><ul>
+<li><p>MySQL</p>
 <ul>
-<li><a href="https://github.com/qyuhen/book/blob/master/Go%201.5%20%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%20%EF%BC%88%E4%B9%A6%E7%AD%BE%E7%89%88%EF%BC%89.pdf" target="_blank" rel="noopener">《Go 1.5源码剖析》</a> </li>
-<li><a href="https://gocn.io/question/371" target="_blank" rel="noopener">[译]Go里面的unsafe包详解</a></li>
+<li>分布式关系型数据库</li>
+<li>作为一个独立的数据库服务器，应用程序需要与MySQL守护进程通信才能访问数据库</li>
+<li>无全文本搜索</li>
+</ul>
+</li>
+<li><p>PostgreSQL</p>
+<ul>
+<li>对象关系型数据库</li>
+<li>支持面向对象及关系型数据库功能</li>
+<li>并发性能好</li>
+</ul>
+</li>
+<li><p>SQLite</p>
+<ul>
+<li>嵌入式关系型数据库 并不作为一个独立的进程通过某种通信协议与应用程序通信，而是作为应用程序的一部分</li>
+<li>自包含、基于文件存储  </li>
+<li>同一时刻仅允许一个写操作</li>
+</ul>
+</li>
+<li><p>Elastic</p>
+<ul>
+<li>全文搜索引擎</li>
+<li>本质上是一个分布式数据库（NoSQL）</li>
+</ul>
+</li>
+<li><p>Cassandra </p>
+<ul>
+<li>分布式数据库，高度可扩展，用于管理大量的结构化数据</li>
+<li>高可用性，没有单点故障</li>
+<li><a href="https://zh.wikipedia.org/wiki/%E5%88%97%E5%BC%8F%E6%95%B0%E6%8D%AE%E5%BA%93" target="_blank" rel="noopener">列式数据库</a></li>
+</ul>
+</li>
+<li><p>MongoDB</p>
+<ul>
+<li>面向文档的NoSQL数据库</li>
+</ul>
+</li>
+<li><p>Redis</p>
+<ul>
+<li>已知最快“key-value”数据库</li>
+<li>基于内存，可设置有效时间</li>
+<li>支持事务</li>
+</ul>
+</li>
+<li><p>Memcache<br>  一个高性能的分布式的内存对象缓存系统，通过在内存里维护一个统一的巨大的hash表，它能够用来存储各种格式的数据，包括图像、视频、文件以及数据库检索的结果等。简单的说就是将数据调用到内存中，然后从内存中读取，从而大大提高读取速度。</p>
+</li>
+</ul>
+<hr>
+<ul>
+<li><a href="http://www.cnblogs.com/94cool/p/3247307.html" target="_blank" rel="noopener">Redis/Memcache/Mongodb 对比</a><ul>
+<li>memecache 把数据全部存在内存之中，断电后会挂掉，数据不能超过内存大小,只支持Key-Value</li>
+<li>redis有部份存在硬盘上，这样能保证数据的持久性，支持数据的持久化，支持list/set/hash</li>
+</ul>
+</li>
+</ul>
+<hr>
+<p>##Mysql</p>
+<p>###数据引擎</p>
+<ul>
+<li>MyISAM: 适合读多写少，不支持事务型处理；（MYSQL 5.5.5之前的默认存储引擎）</li>
+<li>InnoDB：支持事务，行锁和外键；（目前默认引擎）</li>
+<li>Memory：数据都存于内存，操作快但无法持续存储；</li>
+</ul>
+<p>###<a href="https://www.kancloud.cn/kancloud/theory-of-mysql-index/41844" target="_blank" rel="noopener">索引</a></p>
+<ul>
+<li><a href="https://blog.csdn.net/v_july_v/article/details/6530142" target="_blank" rel="noopener">B-Tree和B+Tree</a> <ul>
+<li>B+Tree所有数据在叶子结点</li>
+<li>B+Tree一个有m个key的节点，最多有2m个子结点；B-Tree可以有2m+1个</li>
+</ul>
+</li>
+<li>R-Tree和R+Tree  <ul>
+<li>R-Tree矩形，R+矩形可相互覆盖</li>
+</ul>
+</li>
+<li>MyISAM索引  <ul>
+<li>非聚集索引</li>
+<li>主、从索引没有区别</li>
+<li>叶子结点存数据指针</li>
+</ul>
+</li>
+<li>InnoDB索引<ul>
+<li>聚集索引</li>
+<li>必须要有主键，且以主键建索引直接存数据</li>
+<li>从键索引存主键值</li>
+<li>每次查询必须通过主键索引查</li>
+</ul>
+</li>
+</ul>
+<p>###<a href="https://juejin.im/post/5a6873fbf265da3e393a97fa" target="_blank" rel="noopener">索引调优</a></p>
+<ul>
+<li>联合索引<ul>
+<li>最左前缀匹配</li>
+<li>范围列可用到索引</li>
+</ul>
+</li>
+<li>索引建立原则<ul>
+<li>索引选择性</li>
+<li>前缀索引（联合前缀索引）</li>
+</ul>
+</li>
+<li>InnoDB尽量用自增索引</li>
+<li>排序order by<ul>
+<li>合理利用索引避免排序SQL</li>
+</ul>
+</li>
+</ul>
+<p>##Redis<br>Redis是一个基于内存的Key-Value型的单线程高速缓存数据库。</p>
+<p>###数据存储</p>
+<ul>
+<li>Redis使用对象表示数据库中的键值对，一个键对象，一个值对象；</li>
+<li>存储数据类型：字符串（strings）， 散列（hashes）， 列表（lists）， 集合（sets，去重）， 有序集合（sorted sets，排序、去重）；</li>
+<li>持久化：Redis支持持久化功能，分为RDB持久化（数据压缩）和AOF持久化（保存写命令，有点类似日志）；</li>
+<li>过期策略：构建过期字典保存所有Key的过期时间，通过定期删除（默认100ms检查一次）和惰性删除（Redis命令执行前对输入的Key进行检查）清理数据；</li>
+<li>内存管理：通过<code>引用计数</code>回收内存。</li>
+</ul>
+<p>###集群部署策略<br>满足<code>线性拓展</code>和<code>高可用性</code>，<code>数据一种性</code>存在一定损失。  </p>
+<ul>
+<li>基本策略：将数据自动切分（split）到多个节点，当部分节点失效仍可以处理命令请求；</li>
+<li>集群数据分片：<ul>
+<li>Redis集群使用数据分片（sharding）而非一致性哈希（consistency hashing）来实现；</li>
+<li>Redis集群包含16384个哈希槽（hash slot）， CRC16(key) % 16384 来计算键 key 属于哪个槽；</li>
+<li>Redis集群中每个节点负责处理一部分哈希槽；</li>
+</ul>
+</li>
+<li>节点主从复制：<ul>
+<li>集群中每个节点都有1个至N个复制品，并设定其中一个为主节点；</li>
+<li>Redis使用异步复制策略，并不能保证数据的强一致性；</li>
+</ul>
+</li>
+</ul>
+<p>###与DB的协同策略<br>Redis常与DB协同并作为DB的缓存使用，使用姿势上有几点需要注意的地方。</p>
+<ul>
+<li>数据查询：先查Redis再查DB，Redis有数据时直接返回，无数据时用DB中查到的数据更新Redis；</li>
+<li>数据删除：先删除Redis再删除DB；</li>
+<li>数据插入／更新策略：<ul>
+<li>先更新DB再更新Redis：流程上没问题，但高并发update时由于写入时间不可控容易出现脏数据的情况；</li>
+<li>先删除Redis再更新DB：并发读写容易出现脏数据。并发读写时容易出现当写还没有完成，Redis已删除，此时读了一条数据更新Redis为脏数据的情况；</li>
+<li>先更新DB再删除Redis：较为合理，由于DB写入较查询耗时更长，所以很难出现并发读写时误更新Redis使其与DB不一致的情况。</li>
+</ul>
+</li>
 </ul>
 
     </article>
     <!-- 前后页  -->
     <ul class="post-pager">
         
-            <li class="next">
-                <a href= "/2018/03/07/Go-简述Map的底层实现/" title= [Go]简述Map的底层实现 >
-                    <span>Next Post</span>
-                    <span>[Go]简述Map的底层实现</span>
-                </a>
-            </li>
-        
         
             <li class="previous">
-                <a href= "/2018/02/12/Go-并发调度模型/" title= [Go]并发调度模型 >
+                <a href= "/2018/06/24/Go-基于Gin的Web服务端构建/" title= [Go]基于Gin的Web服务端构建 >
                     <span>Previous Post</span>
-                    <span>[Go]并发调度模型</span>
+                    <span>[Go]基于Gin的Web服务端构建</span>
                 </a>
             </li>
         
@@ -264,7 +370,7 @@
 <script src="https://imsun.github.io/gitment/dist/gitment.browser.js"></script>
 <script>
     var gitment = new Gitment({
-        // id: "[Go]简述Slice的底层实现", // 可选。默认为 location.href
+        // id: "[DB]多类型数据库基础", // 可选。默认为 location.href
         owner: 'Wan-Mi',
         repo: 'gitment',
         oauth: {
@@ -327,7 +433,7 @@
         <div class="toc-catalog">
             <span class="iconfont-archer catalog-icon">&#xe613;</span><span>CATALOG</span>
         </div>
-        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#数据结构"><span class="toc-number">1.</span> <span class="toc-text">数据结构</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#重组（reslice）"><span class="toc-number">2.</span> <span class="toc-text">重组（reslice）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#扩容（append）"><span class="toc-number">3.</span> <span class="toc-text">扩容（append）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#拷贝（copy）"><span class="toc-number">4.</span> <span class="toc-text">拷贝（copy）</span></a></li></ol>
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#常用数据库"><span class="toc-number">1.</span> <span class="toc-text">常用数据库</span></a></li></ol>
     </div>
     
     <div class="back-top">&#xe639;</div>

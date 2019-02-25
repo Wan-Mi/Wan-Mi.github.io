@@ -158,16 +158,46 @@
     
     
         <article class="index-post">
-            <a class="abstract-title" href = "/2018/02/12/Go-并发调度模型/" >
+            <a class="abstract-title" href = "/2019/02/22/DB-多类型数据库基础/" >
                 
-                    <span>[Go]并发调度模型</span>
+                    <span>[DB]多类型数据库基础</span>
             </a>
-            <a class="content-show-full" href = "/2018/02/12/Go-并发调度模型/" >
+            <a class="content-show-full" href = "/2019/02/22/DB-多类型数据库基础/" >
                 <div class="abstract-content">
-                    Go因Goroutine而与众不同。在Go程序中所有的用户代码都运行在Goroutine中，为了让程序高效运行需要一个合理的调度机制进行Goroutine的并发调度。  Go语言内置运行时，面向并发需求设计了全新的架构模型——GPM调度模型。  
+                    常用数据库
+MySQL
 
-G：Goroutine的简称。  虽然Go进程内的一切都以G的方式运行，但G并非执行体，它仅保存并发任务状态，为任务执行提供栈内存空间；
-M：系统线程（OS Thread）的代称，M取自其寓意Machine的首字母。  M是代码的实际执行体。其通过修改寄存器，将执行栈指向G自带栈内存，并在此空间内分配栈堆帧，执行任务函数。  M必须绑定一个有...
+分布式关系型数据库
+作为一个独立的数据库服务器，应用程序需要与MySQL守护进程通信才能访问数据库
+无全文本搜索
+
+
+PostgreSQL
+
+对象关系型数据库
+支持面向对象及关系型数据库功能
+并发性能好
+
+
+SQLite
+
+嵌入式关系型数据库 并不作为一个独立的进程通过某种通信协议与应用程序通信，而是作为应用程序的一部分
+自包含、基于文件存储  
+同一时刻仅允许一个写操作
+
+
+Elastic
+
+全文搜索引擎
+本质上是一个分布式数据库（NoSQL）
+
+
+Cassandra 
+
+分布式数据库，高度可扩展，用于管理大量的结构化数据
+高可用性，没有单点故障
+列式数据库
+...
                 </div>
             </a>
             <div class="abstract-post-meta">
@@ -175,89 +205,13 @@ M：系统线程（OS Thread）的代称，M取自其寓意Machine的首字母�
                 
                 <div class= abstract-tags >
     
-        <a class="post-tag" href="javascript:void(0);" data-href = Go>Go</a>
+        <a class="post-tag" href="javascript:void(0);" data-href = DB>DB</a>
     
 </div>
                 
                 <!-- date  -->
                 <div class="abstract-date">
-                    <span class="abstract-calander iconfont-archer"></span><span class="abstract-time">2018/02/12</span>
-                </div>
-            </div>
-        </article>
-    
-    
-    
-        <article class="index-post">
-            <a class="abstract-title" href = "/2018/02/09/Go-简述垃圾回收/" >
-                
-                    <span>[Go]简述垃圾回收（GC）</span>
-            </a>
-            <a class="content-show-full" href = "/2018/02/09/Go-简述垃圾回收/" >
-                <div class="abstract-content">
-                    GC问题的核心是：抑制堆增长，充分利用CPU资源。Go所采用的GC算法是经典标记-清除算法的进一步改良。本文在介绍Go中GC逻辑之前会先介绍基本的GC算法。
-基本GC算法基本的垃圾回收（GC）算法有四种：引用计数法（Reference Counting）、复制法（Copying）、标记-清除法（Mark-Sweep）和标记-压缩法（Mark-Compact）。注：在某些语言环境中会同时使用其中的多种算法进行垃圾回收。
-基本流程
-检查分配内存总量是否超过预设阈值；
-如超过阈值，暂停一切用户逻辑，进行垃圾回收（不释放物理内存）；
-垃圾回收完成后，恢复用户逻辑，将阈值设为存活对象所用内存的两倍...
-                </div>
-            </a>
-            <div class="abstract-post-meta">
-                <!-- tags  -->
-                
-                <div class= abstract-tags >
-    
-        <a class="post-tag" href="javascript:void(0);" data-href = Go>Go</a>
-    
-</div>
-                
-                <!-- date  -->
-                <div class="abstract-date">
-                    <span class="abstract-calander iconfont-archer"></span><span class="abstract-time">2018/02/09</span>
-                </div>
-            </div>
-        </article>
-    
-    
-    
-        <article class="index-post">
-            <a class="abstract-title" href = "/2018/02/08/Go-简述内存分配/" >
-                
-                    <span>[Go]简述内存分配</span>
-            </a>
-            <a class="content-show-full" href = "/2018/02/08/Go-简述内存分配/" >
-                <div class="abstract-content">
-                    内存分配的核心目标
-每次申请大内存块，自主管理，减少系统调用
-基于块的内存复用，加快内存分配和回收
-
-内存分配的基本策略
-每次从系统申请大块内存以减少系统调用；  
-将申请到的大块内存进行切分构成链表；  
-为对象分配内存时，只需从大小合适的链表中提取一小块；  
-回收对象内存时，会将提取的小块内存归还原链表；
-如闲置内存过多则尝试归还部分内存给操作系统；
-
-内存块Go的内存分配器将管理的内存块分为两种：
-
-span：由多个连续的页（Page）组成的大块内存；
-
-123//malloc.go PageShift = 13, PageSize = 1&lt;&lt;PageShift,  ...
-                </div>
-            </a>
-            <div class="abstract-post-meta">
-                <!-- tags  -->
-                
-                <div class= abstract-tags >
-    
-        <a class="post-tag" href="javascript:void(0);" data-href = Go>Go</a>
-    
-</div>
-                
-                <!-- date  -->
-                <div class="abstract-date">
-                    <span class="abstract-calander iconfont-archer"></span><span class="abstract-time">2018/02/08</span>
+                    <span class="abstract-calander iconfont-archer"></span><span class="abstract-time">2019/02/22</span>
                 </div>
             </div>
         </article>
