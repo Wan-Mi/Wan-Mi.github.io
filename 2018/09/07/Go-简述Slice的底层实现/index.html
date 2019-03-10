@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" >
     <title>
         
-        [Go]简述内存分配 · Wanmii&#39;s Blog.
+        [Go]简述Slice的底层实现 · Wanmii&#39;s Blog.
         
     </title>
     <link rel="icon" href= /assets/rider.png>
@@ -72,7 +72,7 @@
                 <a href="/" >Wanmii&#39;s Blog.</a>
             </div>
             <div class="post-title">
-                <a href="#" class="post-name">[Go]简述内存分配</a>
+                <a href="#" class="post-name">[Go]简述Slice的底层实现</a>
             </div>
     </div>
     
@@ -93,7 +93,7 @@
         <h1 class="intro-title">
             <!-- 主页  -->
             
-            [Go]简述内存分配
+            [Go]简述Slice的底层实现
             <!-- 404 -->
             
         </h1>
@@ -118,7 +118,7 @@
             <script>window._bd_share_config = { "common": { "bdSnsKey": {}, "bdText": "", "bdMini": "2", "bdMiniList": false, "bdPic": "", "bdStyle": "1", "bdSize": "16" }, "share": {} }; with (document) 0[(getElementsByTagName('head')[0] || body).appendChild(createElement('script')).src = "/static/api/js/share.js"];</script>
             <div class="post-intro-meta">
                 <span class="post-intro-calander iconfont-archer">&#xe676;</span>
-                <span class="post-intro-time">2018/02/08</span>
+                <span class="post-intro-time">2018/09/07</span>
                 <span id="busuanzi_container_page_pv" class="busuanzi-pv">
                     <span class="iconfont-archer">&#xe604;</span>
                     <span id="busuanzi_value_page_pv"></span>
@@ -201,57 +201,36 @@
         <div class="container container-unloaded">
             <main class="main post-page">
     <article class="article-entry">
-        <h2 id="内存分配的核心目标"><a href="#内存分配的核心目标" class="headerlink" title="内存分配的核心目标"></a>内存分配的核心目标</h2><ul>
-<li>每次申请大内存块，自主管理，减少系统调用</li>
-<li>基于块的内存复用，加快内存分配和回收</li>
-</ul>
-<h2 id="内存分配的基本策略"><a href="#内存分配的基本策略" class="headerlink" title="内存分配的基本策略"></a>内存分配的基本策略</h2><ol>
-<li>每次从系统申请大块内存以减少系统调用；  </li>
-<li>将申请到的大块内存进行切分构成链表；  </li>
-<li>为对象分配内存时，只需从大小合适的链表中提取一小块；  </li>
-<li>回收对象内存时，会将提取的小块内存归还原链表；</li>
-<li>如闲置内存过多则尝试归还部分内存给操作系统；</li>
-</ol>
-<h2 id="内存块"><a href="#内存块" class="headerlink" title="内存块"></a>内存块</h2><p>Go的内存分配器将管理的内存块分为两种：</p>
+        <h2 id="数据结构"><a href="#数据结构" class="headerlink" title="数据结构"></a>数据结构</h2><p>作为比较，分别查看array和slice的数据结构：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// package types</span></span><br><span class="line"><span class="comment">// type.go</span></span><br><span class="line"><span class="keyword">type</span> Array <span class="keyword">struct</span> &#123;</span><br><span class="line">	<span class="built_in">len</span>  <span class="keyword">int64</span></span><br><span class="line">	elem Type</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// All types implement the Type interface.</span></span><br><span class="line"><span class="keyword">type</span> Type <span class="keyword">interface</span> &#123;</span><br><span class="line">	Underlying() Type</span><br><span class="line">	String() <span class="keyword">string</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// package runtime</span></span><br><span class="line"><span class="comment">// slice.go </span></span><br><span class="line"><span class="keyword">type</span> slice <span class="keyword">struct</span> &#123;</span><br><span class="line">	array unsafe.Pointer</span><br><span class="line">	<span class="built_in">len</span>   <span class="keyword">int</span></span><br><span class="line">	<span class="built_in">cap</span>   <span class="keyword">int</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>从结构中可以看出，虽然两者功能相似，但结构完全不同。slice通过内部指针的方式引用了一个数组片段，以实现变长方案。len表示slice元素数量，cap表示slice最大元素容量。由于这种特殊的结构，虽然slice本身是结构体，但却是引用类型。</p>
+<hr>
+<p><em>unsafe.Pointer：通过unsafe包中的注释我们可以发现“任何类型的指针值都可以转换为unsafe.Pointer”。换句话说，unsafe.Pointer是一个可以指向任何类型的指针。其类型ArbitraryType并非一个具体类型，更像一个占位符。</em></p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// unsafe.go</span></span><br><span class="line"><span class="keyword">type</span> ArbitraryType <span class="keyword">int</span></span><br><span class="line"><span class="keyword">type</span> Pointer *ArbitraryType</span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="重组（reslice）"><a href="#重组（reslice）" class="headerlink" title="重组（reslice）"></a>重组（reslice）</h2><p>reslice是指基于已有slice创建新slice的过程。其最大特点是新slice依旧指向原底层数组，因而新slice对原slice的取值范围不可超过原slice的cap。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">resliceDemo</span><span class="params">()</span></span> &#123;</span><br><span class="line">	s := []<span class="keyword">int32</span>&#123;</span><br><span class="line">		<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>,</span><br><span class="line">	&#125;</span><br><span class="line">	fmt.Println(<span class="string">"0-2:"</span>, s[:<span class="number">3</span>])</span><br><span class="line">	fmt.Println(<span class="string">"4-5:"</span>, s[<span class="number">3</span>:<span class="number">6</span>][<span class="number">1</span>:])</span><br><span class="line">	<span class="comment">// panic: runtime error</span></span><br><span class="line">	<span class="comment">// fmt.Println("4-5", s[4:7])</span></span><br><span class="line">	</span><br><span class="line">	t := s[<span class="number">1</span>:]</span><br><span class="line">	fmt.Printf(<span class="string">"%p,%p\n"</span>, s, t)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>运行结果：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">0-2: [0 1 2]</span><br><span class="line">4-5: [4 5]</span><br><span class="line">0xc42000a240,0xc42000a244</span><br></pre></td></tr></table></figure>
+<p>前两行输出可以看出，通过reslice的方式构建新slice时，取值范围为“左闭右开”，且允许连续截取。最后一行中，t是从s的第二个元素开始截取的新slice，由于指向原底层数组，其地址为原地址+4（int32，4字节），输出符合预期。</p>
+<h2 id="扩容（append）"><a href="#扩容（append）" class="headerlink" title="扩容（append）"></a>扩容（append）</h2><p>append函数可向slice尾部添加元素。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">appendDemo</span><span class="params">()</span></span> &#123;</span><br><span class="line">    s := []<span class="keyword">int32</span>&#123;</span><br><span class="line">		  <span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>,</span><br><span class="line">	   &#125;</span><br><span class="line">    s1 := <span class="built_in">append</span>(s, <span class="number">6</span>)</span><br><span class="line">    s2 := <span class="built_in">append</span>(s1, <span class="number">7</span>, <span class="number">8</span>)</span><br><span class="line">    fmt.Println(<span class="string">"s2:"</span>, s2)</span><br><span class="line">    fmt.Println(<span class="string">"cap:"</span>, <span class="built_in">cap</span>(s), <span class="built_in">cap</span>(s1), <span class="built_in">cap</span>(s2))</span><br><span class="line">    fmt.Printf(<span class="string">"addr: %p,%p\n"</span>, s, s1)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>运行结果：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">s2: [0 1 2 3 4 5 6 7 8]</span><br><span class="line">cap: 6 12 12</span><br><span class="line">addr: 0xc42000a260,0xc4200180f0</span><br></pre></td></tr></table></figure>
+<p>demo中，s通过字面量形式初始化，len和cap为元素个数6。append函数可一次在slice尾部添加一个或多个元素。当元素个数大于cap时，slice的cap会进行扩容。当slice进行扩容时，会重新生成一个大容量底层数组，再将原数组值和添加值复制到新数组。由于数组copy通过值传递，会消耗等量内存且耗时。个人建议在slice初始化时设定足够大的cap用来append，可减少内存和时间损耗。<br>通常扩容后的slice cap会增大到原来两倍，当元素个数超过1024时，增大倍数会减少到1.25倍。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">appendCapDemo</span><span class="params">()</span></span> &#123;</span><br><span class="line">   m, n := <span class="number">1000</span>, <span class="number">5000</span></span><br><span class="line">	a, b := <span class="built_in">make</span>([]<span class="keyword">int32</span>, m, m), <span class="built_in">make</span>([]<span class="keyword">int32</span>, n, n)</span><br><span class="line">	a1, b1 := <span class="built_in">append</span>(a, <span class="number">1</span>), <span class="built_in">append</span>(b, <span class="number">1</span>)</span><br><span class="line">	fmt.Println(<span class="built_in">cap</span>(a1), <span class="built_in">cap</span>(b1))</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>运行结果：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">2048 6816</span><br></pre></td></tr></table></figure>
+<h2 id="拷贝（copy）"><a href="#拷贝（copy）" class="headerlink" title="拷贝（copy）"></a>拷贝（copy）</h2><p>copy函数可用于slice拷贝。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">appendCapDemo</span><span class="params">()</span></span> &#123;</span><br><span class="line">	s := []<span class="keyword">int32</span>&#123;</span><br><span class="line">		<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>,</span><br><span class="line">	&#125;	</span><br><span class="line">	s3 := s[:<span class="number">5</span>]</span><br><span class="line">	s4 := s[<span class="number">5</span>:]</span><br><span class="line">	s5 := <span class="built_in">copy</span>(s3, s4) <span class="comment">// des:s3, src:s4</span></span><br><span class="line">	fmt.Println(s3, s4, s5)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>运行结果：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[5 1 2 3 4] [5] 1</span><br></pre></td></tr></table></figure>
+<p>demo中可看出，slice拷贝更准确的说应该是slice的元素拷贝。其所要拷贝的元素个数以短slice len为准。有两小点要注意的是：copy函数两个参数，目标slice在前，来源slice在后；copy函数运行成功后目标slice直接被改变，copy函数的返回值为拷贝的元素个数（打印的S5），并非返回slice。</p>
+<hr>
+<p>Reference：</p>
 <ul>
-<li>span：由多个连续的页（Page）组成的大块内存；</li>
-</ul>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//malloc.go</span></span><br><span class="line"> PageShift = <span class="number">13</span>,</span><br><span class="line"> PageSize = <span class="number">1</span>&lt;&lt;PageShift,   <span class="comment">//8192 bytes</span></span><br></pre></td></tr></table></figure>
-<ul>
-<li>object：将span按特定大小切成小块，每一小块可存储一个对象。</li>
-</ul>
-<h2 id="管理组件"><a href="#管理组件" class="headerlink" title="管理组件"></a>管理组件</h2><p>Go采用了<code>tcmalloc</code>的内存分配架构，分配器由三种组建组成：  </p>
-<ul>
-<li>heap：全局根对象。负责向操作系统申请新内存，并管理闲置span。</li>
-</ul>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//mheap.go</span></span><br><span class="line"><span class="keyword">type</span> mheap <span class="keyword">struct</span> &#123;</span><br><span class="line">	free      [_MaxMHeapList]mSpanList <span class="comment">// 127页以内的闲置span链表</span></span><br><span class="line">	freelarge mSpanList                <span class="comment">// 超过127页（&gt;=1M）的大span链表</span></span><br><span class="line">	</span><br><span class="line">	<span class="comment">//每个central对应一种sizeclass</span></span><br><span class="line">	central [_NumSizeClasses]<span class="keyword">struct</span> &#123;</span><br><span class="line">		mcentral mcentral</span><br><span class="line">		pad      [sys.CacheLineSize]<span class="keyword">byte</span></span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<ul>
-<li>central：从heap获取空闲span，切分好，供给cache使用：  </li>
-</ul>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//mcentral.go</span></span><br><span class="line"><span class="keyword">type</span> mcentral <span class="keyword">struct</span> &#123;</span><br><span class="line">	lock      mutex</span><br><span class="line">	sizeclass <span class="keyword">int32</span>    <span class="comment">// 规格大小</span></span><br><span class="line">	nonempty  mSpanList <span class="comment">// 尚有空闲对象的span链表</span></span><br><span class="line">	empty     mSpanList <span class="comment">// 无空闲对象的span列表</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<ul>
-<li>cache：每个运行的工作线程都会绑定一个cache，用于无锁对象分配。内部有个以等级为序号的数组，持有多个切分好的span。不够时向对应的central获取新span：</li>
-</ul>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//mcache.go </span></span><br><span class="line"><span class="keyword">type</span> mcache <span class="keyword">struct</span> &#123;</span><br><span class="line">	<span class="comment">// 以sizeclass为索引管理多个用于分配的span</span></span><br><span class="line">	alloc [_NumSizeClasses]*mspan </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h2 id="分配流程"><a href="#分配流程" class="headerlink" title="分配流程"></a>分配流程</h2><ul>
-<li>大于32KB的对象使用heap直接分配；</li>
-<li>小于16B的对象使用cache的小对象分配器进行分配；</li>
-<li>中间大小的对象会从<code>mcache.alloc[sizeclass]</code>中找到对象size等级对应的span进行内存分配；  如span不足则根据<code>heap.central[sizeclass]</code>找到对应central获取span；  如central无可用span则向heap申请;  heap也没有空间则向系统申请新的内存。</li>
-</ul>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">_TinySize      = <span class="number">16</span>        <span class="comment">// 16B</span></span><br><span class="line">_MaxSmallSize  = <span class="number">32768</span>     <span class="comment">// 32KB</span></span><br></pre></td></tr></table></figure>
-<h2 id="回收流程"><a href="#回收流程" class="headerlink" title="回收流程"></a>回收流程</h2><p> 针对heap上分配的对象，直接在heap上回收。其他对象回收方式如下：</p>
-<ul>
-<li>垃圾回收器将可回收对象交还给所属<code>span.freelist</code>；</li>
-<li>将该span放回central以便任意cache重新获取；</li>
-<li>如一个span收回了所有的对象，则将其交还给heap，以便重新切分复用；</li>
-<li>垃圾回收器定期扫描获取heap里长期闲置的span，释放其占用内存。</li>
-</ul>
-<p>–</p>
-<p>Reference:</p>
-<ul>
-<li><a href="https://github.com/qyuhen/book/blob/master/Go%201.5%20%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%20%EF%BC%88%E4%B9%A6%E7%AD%BE%E7%89%88%EF%BC%89.pdf" target="_blank" rel="noopener">《Go 1.5源码剖析》</a></li>
-<li><a href="https://github.com/qyuhen/book/blob/master/Go%20%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%20%E7%AC%AC%E5%9B%9B%E7%89%88.pdf" target="_blank" rel="noopener">《Go 学习笔记 第四版》</a></li>
-<li><a href="https://tracymacding.gitbooks.io/implementation-of-golang/content/memory/memory_alloc_alg.html" target="_blank" rel="noopener">《Implementation of Golang》</a></li>
+<li><a href="https://github.com/qyuhen/book/blob/master/Go%201.5%20%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%20%EF%BC%88%E4%B9%A6%E7%AD%BE%E7%89%88%EF%BC%89.pdf" target="_blank" rel="noopener">《Go 1.5源码剖析》</a> </li>
+<li><a href="https://gocn.io/question/371" target="_blank" rel="noopener">[译]Go里面的unsafe包详解</a></li>
 </ul>
 
     </article>
@@ -259,17 +238,17 @@
     <ul class="post-pager">
         
             <li class="next">
-                <a href= "/2018/02/09/Go-简述垃圾回收/" title= [Go]简述垃圾回收（GC） >
+                <a href= "/2018/09/07/Go-简述Map的底层实现/" title= [Go]简述Map的底层实现 >
                     <span>Next Post</span>
-                    <span>[Go]简述垃圾回收（GC）</span>
+                    <span>[Go]简述Map的底层实现</span>
                 </a>
             </li>
         
         
             <li class="previous">
-                <a href= "/2018/01/31/Go-Goroutine到底是什么：从进程到Go协程/" title= [Go]Goroutine到底是什么：从进程到Go协程 >
+                <a href= "/2018/07/12/Go-并发调度模型/" title= [Go]并发调度模型 >
                     <span>Previous Post</span>
-                    <span>[Go]Goroutine到底是什么：从进程到Go协程</span>
+                    <span>[Go]并发调度模型</span>
                 </a>
             </li>
         
@@ -285,7 +264,7 @@
 <script src="https://imsun.github.io/gitment/dist/gitment.browser.js"></script>
 <script>
     var gitment = new Gitment({
-        // id: "[Go]简述内存分配", // 可选。默认为 location.href
+        // id: "[Go]简述Slice的底层实现", // 可选。默认为 location.href
         owner: 'Wan-Mi',
         repo: 'gitment',
         oauth: {
@@ -348,7 +327,7 @@
         <div class="toc-catalog">
             <span class="iconfont-archer catalog-icon">&#xe613;</span><span>CATALOG</span>
         </div>
-        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#内存分配的核心目标"><span class="toc-number">1.</span> <span class="toc-text">内存分配的核心目标</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#内存分配的基本策略"><span class="toc-number">2.</span> <span class="toc-text">内存分配的基本策略</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#内存块"><span class="toc-number">3.</span> <span class="toc-text">内存块</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#管理组件"><span class="toc-number">4.</span> <span class="toc-text">管理组件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#分配流程"><span class="toc-number">5.</span> <span class="toc-text">分配流程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#回收流程"><span class="toc-number">6.</span> <span class="toc-text">回收流程</span></a></li></ol>
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#数据结构"><span class="toc-number">1.</span> <span class="toc-text">数据结构</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#重组（reslice）"><span class="toc-number">2.</span> <span class="toc-text">重组（reslice）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#扩容（append）"><span class="toc-number">3.</span> <span class="toc-text">扩容（append）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#拷贝（copy）"><span class="toc-number">4.</span> <span class="toc-text">拷贝（copy）</span></a></li></ol>
     </div>
     
     <div class="back-top">&#xe639;</div>

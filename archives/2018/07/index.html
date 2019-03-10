@@ -158,15 +158,16 @@
     
     
         <article class="index-post">
-            <a class="abstract-title" href = "/2018/01/20/Godep-如何合理更新Go项目依赖/" >
+            <a class="abstract-title" href = "/2018/07/12/Go-并发调度模型/" >
                 
-                    <span>[Godep]如何合理更新Go项目依赖</span>
+                    <span>[Go]并发调度模型</span>
             </a>
-            <a class="content-show-full" href = "/2018/01/20/Godep-如何合理更新Go项目依赖/" >
+            <a class="content-show-full" href = "/2018/07/12/Go-并发调度模型/" >
                 <div class="abstract-content">
-                    利用godep更新依赖库，最常见的做法是将godep.json中的依赖库版本进行更新，再godep save即可。但这很可能会使得母库和子库的共同依赖不同步进而可能产生报错，这才是本文想解决的问题：Go的包管理工具godep并不像诸如iOS包管理工具CocoaPods那样可以自动统一母库A和子库B的共同依赖(如库C)。当需要对子库B进行更新时，如果单纯的在库A中更新库B，则有可能发生同一个项目A中存在不同版本的依赖库C的情况。为了解决上述问题可进行如下操作:1、在B路径中更新子库B（此时C可能也会跟着更新）
-1git pull
-2、 在A路径中移除项目A中的Godeps和Vender文件...
+                    Go因Goroutine而与众不同。在Go程序中所有的用户代码都运行在Goroutine中，为了让程序高效运行需要一个合理的调度机制进行Goroutine的并发调度。  Go语言内置运行时，面向并发需求设计了全新的架构模型——GPM调度模型。  
+
+G：Goroutine的简称。  虽然Go进程内的一切都以G的方式运行，但G并非执行体，它仅保存并发任务状态，为任务执行提供栈内存空间；
+M：系统线程（OS Thread）的代称，M取自其寓意Machine的首字母。  M是代码的实际执行体。其通过修改寄存器，将执行栈指向G自带栈内存，并在此空间内分配栈堆帧，执行任务函数。  M必须绑定一个有...
                 </div>
             </a>
             <div class="abstract-post-meta">
@@ -174,13 +175,13 @@
                 
                 <div class= abstract-tags >
     
-        <a class="post-tag" href="javascript:void(0);" data-href = Godep>Godep</a>
+        <a class="post-tag" href="javascript:void(0);" data-href = Go>Go</a>
     
 </div>
                 
                 <!-- date  -->
                 <div class="abstract-date">
-                    <span class="abstract-calander iconfont-archer"></span><span class="abstract-time">2018/01/20</span>
+                    <span class="abstract-calander iconfont-archer"></span><span class="abstract-time">2018/07/12</span>
                 </div>
             </div>
         </article>

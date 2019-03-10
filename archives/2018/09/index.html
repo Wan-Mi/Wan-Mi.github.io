@@ -158,15 +158,14 @@
     
     
         <article class="index-post">
-            <a class="abstract-title" href = "/2018/01/20/Godep-如何合理更新Go项目依赖/" >
+            <a class="abstract-title" href = "/2018/09/07/Go-简述Map的底层实现/" >
                 
-                    <span>[Godep]如何合理更新Go项目依赖</span>
+                    <span>[Go]简述Map的底层实现</span>
             </a>
-            <a class="content-show-full" href = "/2018/01/20/Godep-如何合理更新Go项目依赖/" >
+            <a class="content-show-full" href = "/2018/09/07/Go-简述Map的底层实现/" >
                 <div class="abstract-content">
-                    利用godep更新依赖库，最常见的做法是将godep.json中的依赖库版本进行更新，再godep save即可。但这很可能会使得母库和子库的共同依赖不同步进而可能产生报错，这才是本文想解决的问题：Go的包管理工具godep并不像诸如iOS包管理工具CocoaPods那样可以自动统一母库A和子库B的共同依赖(如库C)。当需要对子库B进行更新时，如果单纯的在库A中更新库B，则有可能发生同一个项目A中存在不同版本的依赖库C的情况。为了解决上述问题可进行如下操作:1、在B路径中更新子库B（此时C可能也会跟着更新）
-1git pull
-2、 在A路径中移除项目A中的Godeps和Vender文件...
+                    数据结构和大多数语言一样，Golang中的Map同样是利用哈希表作为基础结构来实现的。
+12345678910111213141516171819202122232425262728// package runtime  hashmap.gotype hmap struct &#123;	count     int // map长度	flags     uint8  //标记	B         uint8  // log以2为底哈希桶的对数 (最多能存 6.5 * 2^B 个元素)	noverflow uint16 // 溢出桶的个数（近似）	hash0     uint32 // 哈...
                 </div>
             </a>
             <div class="abstract-post-meta">
@@ -174,13 +173,42 @@
                 
                 <div class= abstract-tags >
     
-        <a class="post-tag" href="javascript:void(0);" data-href = Godep>Godep</a>
+        <a class="post-tag" href="javascript:void(0);" data-href = Go>Go</a>
     
 </div>
                 
                 <!-- date  -->
                 <div class="abstract-date">
-                    <span class="abstract-calander iconfont-archer"></span><span class="abstract-time">2018/01/20</span>
+                    <span class="abstract-calander iconfont-archer"></span><span class="abstract-time">2018/09/07</span>
+                </div>
+            </div>
+        </article>
+    
+    
+    
+        <article class="index-post">
+            <a class="abstract-title" href = "/2018/09/07/Go-简述Slice的底层实现/" >
+                
+                    <span>[Go]简述Slice的底层实现</span>
+            </a>
+            <a class="content-show-full" href = "/2018/09/07/Go-简述Slice的底层实现/" >
+                <div class="abstract-content">
+                    数据结构作为比较，分别查看array和slice的数据结构：
+1234567891011121314151617181920// package types// type.gotype Array struct &#123;	len  int64	elem Type&#125;// All types implement the Type interface.type Type interface &#123;	Underlying() Type	String() string&#125;// package runtime// slice.go type slice struct &#...
+                </div>
+            </a>
+            <div class="abstract-post-meta">
+                <!-- tags  -->
+                
+                <div class= abstract-tags >
+    
+        <a class="post-tag" href="javascript:void(0);" data-href = Go>Go</a>
+    
+</div>
+                
+                <!-- date  -->
+                <div class="abstract-date">
+                    <span class="abstract-calander iconfont-archer"></span><span class="abstract-time">2018/09/07</span>
                 </div>
             </div>
         </article>

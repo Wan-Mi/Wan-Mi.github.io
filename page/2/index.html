@@ -171,6 +171,36 @@
     
     
         <article class="index-post">
+            <a class="abstract-title" href = "/2018/01/20/Godep-如何合理更新Go项目依赖/" >
+                
+                    <span>[Godep]如何合理更新Go项目依赖</span>
+            </a>
+            <a class="content-show-full" href = "/2018/01/20/Godep-如何合理更新Go项目依赖/" >
+                <div class="abstract-content">
+                    利用godep更新依赖库，最常见的做法是将godep.json中的依赖库版本进行更新，再godep save即可。但这很可能会使得母库和子库的共同依赖不同步进而可能产生报错，这才是本文想解决的问题：Go的包管理工具godep并不像诸如iOS包管理工具CocoaPods那样可以自动统一母库A和子库B的共同依赖(如库C)。当需要对子库B进行更新时，如果单纯的在库A中更新库B，则有可能发生同一个项目A中存在不同版本的依赖库C的情况。为了解决上述问题可进行如下操作:1、在B路径中更新子库B（此时C可能也会跟着更新）
+1git pull
+2、 在A路径中移除项目A中的Godeps和Vender文件...
+                </div>
+            </a>
+            <div class="abstract-post-meta">
+                <!-- tags  -->
+                
+                <div class= abstract-tags >
+    
+        <a class="post-tag" href="javascript:void(0);" data-href = Godep>Godep</a>
+    
+</div>
+                
+                <!-- date  -->
+                <div class="abstract-date">
+                    <span class="abstract-calander iconfont-archer"></span><span class="abstract-time">2018/01/20</span>
+                </div>
+            </div>
+        </article>
+    
+    
+    
+        <article class="index-post">
             <a class="abstract-title" href = "/2018/01/20/Go-slice、map、channel与struct的初始化/" >
                 
                     <span>[Go]slice、map、channel与struct的初始化</span>
@@ -454,7 +484,14 @@
     
     
     
-    <div class="total-archive"> Total : 12 </div>
+    
+    
+    
+    
+    
+    
+    
+    <div class="total-archive"> Total : 13 </div>
     
     <div class="post-archive">
     
@@ -466,7 +503,7 @@
     
     
         <li class="archive-post-item">
-            <span class="archive-post-date">02/22</span><a class="archive-post-title" href= "/2019/02/22/DB-多类型数据库基础/" >[DB]多类型数据库基础</a>
+            <span class="archive-post-date">02/22</span><a class="archive-post-title" href= "/2019/02/22/Go-基于Monkey和GoConvey的Go单元测试/" >[Go]基于Monkey和GoConvey的Go单元测试</a>
         </li>
     
     
@@ -480,22 +517,27 @@
     
     
         <li class="archive-post-item">
-            <span class="archive-post-date">06/24</span><a class="archive-post-title" href= "/2018/06/24/Go-基于Gin的Web服务端构建/" >[Go]基于Gin的Web服务端构建</a>
+            <span class="archive-post-date">12/22</span><a class="archive-post-title" href= "/2018/12/22/DB-多类型数据库基础/" >[DB]多类型数据库基础</a>
         </li>
     
     
         <li class="archive-post-item">
-            <span class="archive-post-date">03/07</span><a class="archive-post-title" href= "/2018/03/07/Go-简述Map的底层实现/" >[Go]简述Map的底层实现</a>
+            <span class="archive-post-date">10/24</span><a class="archive-post-title" href= "/2018/10/24/Go-基于Gin的Web服务端构建/" >[Go]基于Gin的Web服务端构建</a>
         </li>
     
     
         <li class="archive-post-item">
-            <span class="archive-post-date">03/07</span><a class="archive-post-title" href= "/2018/03/07/Go-简述Slice的底层实现/" >[Go]简述Slice的底层实现</a>
+            <span class="archive-post-date">09/07</span><a class="archive-post-title" href= "/2018/09/07/Go-简述Map的底层实现/" >[Go]简述Map的底层实现</a>
         </li>
     
     
         <li class="archive-post-item">
-            <span class="archive-post-date">02/12</span><a class="archive-post-title" href= "/2018/02/12/Go-并发调度模型/" >[Go]并发调度模型</a>
+            <span class="archive-post-date">09/07</span><a class="archive-post-title" href= "/2018/09/07/Go-简述Slice的底层实现/" >[Go]简述Slice的底层实现</a>
+        </li>
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">07/12</span><a class="archive-post-title" href= "/2018/07/12/Go-并发调度模型/" >[Go]并发调度模型</a>
         </li>
     
     
@@ -540,11 +582,11 @@
     
         <span class="sidebar-tag-name"><a href= "#">Go</a></span>
     
+        <span class="sidebar-tag-name"><a href= "#">DB</a></span>
+    
         <span class="sidebar-tag-name"><a href= "#">Go Gin</a></span>
     
         <span class="sidebar-tag-name"><a href= "#">Godep</a></span>
-    
-        <span class="sidebar-tag-name"><a href= "#">DB</a></span>
     
     </div>
     <div class="tag-load-fail" style="display: none; color: #ccc; font-size: 0.6rem;">
